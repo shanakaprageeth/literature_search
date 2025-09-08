@@ -1,0 +1,9 @@
+{
+  "research_topic": "Machine learning applications in medical imaging",
+  "initial_prisma_values": {
+    "inclusion_criteria": ["Peer-reviewed articles", "Published after 2018", "Focus on machine learning in medical imaging"],
+    "exclusion_criteria": ["Non-English publications", "Conference abstracts only"],
+    "databases": ["PubMed", "IEEE Xplore", "Scopus"],
+    "date_range": "2018-2024"
+  }
+}
