@@ -1,238 +1,23 @@
-import json
-import csv
-import requests
+# Copyright (c) 2024 Shanaka Abeysiriwardhana
+# This file is part of research_search_shanaka and is licensed under the GNU GPL v3.
+# Please carry the copyright notice in derived works.
+# See LICENSE file for details.
 import argparse
-import matplotlib.pyplot as plt
-import drawpyo
 from collections import Counter
-import re
+from research_search_shanaka.config_loader import load_config
+from research_search_shanaka.keywords import get_keywords
+from research_search_shanaka.api_clients import (
+    get_publications_europe_pmc,
+    get_publications_crossref,
+    get_publications_arxiv,
+    get_publications_core,
+    get_publications_semanticscholar
+)
+from research_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from research_search_shanaka.utils import robust_get
 import os
-import time
-
-STOPWORDS = set([
-    'the', 'and', 'for', 'with', 'that', 'from', 'this', 'have', 'are', 'was', 'were', 'has', 'had', 'but', 'not', 'all', 'can', 'will', 'into', 'out', 'over', 'under', 'more', 'than', 'such', 'their', 'they', 'them', 'been', 'also', 'which', 'when', 'where', 'who', 'what', 'how', 'why', 'your', 'about', 'after', 'before', 'between', 'each', 'other', 'some', 'any', 'our', 'his', 'her', 'its', 'on', 'in', 'of', 'to', 'by', 'as', 'at', 'an', 'or', 'is', 'a', 'be', 'it'
-])
-
-def get_keywords(research_topic):
-    # Improved keyword extraction: remove stopwords, punctuation, lowercase, unique
-    words = re.findall(r'\b\w+\b', research_topic.lower())
-    keywords = [w for w in words if w not in STOPWORDS and len(w) > 3]
-    return list(set(keywords))
-
-def robust_get(url, params=None, headers=None, max_retries=5):
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(url, params=params, headers=headers)
-            if response.status_code == 200:
-                return response
-            else:
-                wait = 2 ** attempt
-                print(f"Request failed (status {response.status_code}), retrying in {wait}s...")
-                time.sleep(wait)
-        except Exception as e:
-            wait = 2 ** attempt
-            print(f"Request error: {e}, retrying in {wait}s...")
-            time.sleep(wait)
-    print(f"Failed to get a valid response from {url} after {max_retries} attempts.")
-    return None
-
-def get_publications_europe_pmc(keyword_list, page_size=100, logic='OR'):
-    """
-    Fetches publication data from Europe PMC API for a given query.
-    logic: 'OR' (default) or 'AND' to combine keywords
-    Returns a list of dicts with publication info.
-    """
-    if logic == 'AND':
-        query = ' AND '.join(keyword_list)
-    else:
-        query = ' OR '.join(keyword_list)
-    url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-    params = {
-        'query': query,
-        'format': 'json',
-        'pageSize': page_size
-    }
-    response = robust_get(url, params=params)
-    if not response:
-        return []
-    data = response.json()
-    results = []
-    for record in data.get('resultList', {}).get('result', []):
-        results.append({
-            'Title': record.get('title', ''),
-            'Source' : record.get('source', 'MED'),
-            'Authors': record.get('authorString', ''),
-            'Year': int(record.get('pubYear', 0)) if record.get('pubYear') else '',
-            'Journal': record.get('journalTitle', ''),
-            'Language': record.get('language', 'English'),
-            'Type': record.get('pubType', ''),
-            'Focus': query
-        })
-    return results
-
-def get_publications_crossref(keyword_list, page_size=100, logic='OR'):
-    """Fetches publication data from CrossRef API."""
-    query = ' '.join(keyword_list)
-    url = f'https://api.crossref.org/works'
-    params = {'query': query, 'rows': page_size}
-    response = robust_get(url, params=params)
-    if not response:
-        return []
-    data = response.json()
-    results = []
-    for item in data.get('message', {}).get('items', []):
-        # Safely extract year
-        year = ''
-        issued = item.get('issued', {})
-        date_parts = issued.get('date-parts') if issued else None
-        if date_parts and isinstance(date_parts, list) and len(date_parts) > 0 and isinstance(date_parts[0], list) and len(date_parts[0]) > 0 and date_parts[0][0]:
-            year = int(date_parts[0][0])
-        results.append({
-            'Title': item.get('title', [''])[0],
-            'Source': 'CrossRef',
-            'Authors': ', '.join([a.get('family', '') for a in item.get('author', [])]) if 'author' in item else '',
-            'Year': year,
-            'Journal': item.get('container-title', [''])[0] if item.get('container-title') else '',
-            'Language': item.get('language', 'English'),
-            'Type': item.get('type', ''),
-            'Focus': query
-        })
-    return results
-
-def get_publications_arxiv(keyword_list, page_size=100, logic='OR'):
-    """Fetches publication data from arXiv API."""
-    import xml.etree.ElementTree as ET
-    query = '+AND+'.join(keyword_list) if logic == 'AND' else '+OR+'.join(keyword_list)
-    url = f'http://export.arxiv.org/api/query?search_query=all:{query}&start=0&max_results={page_size}'
-    response = robust_get(url)
-    if not response:
-        return []
-    root = ET.fromstring(response.content)
-    ns = {'atom': 'http://www.w3.org/2005/Atom'}
-    results = []
-    for entry in root.findall('atom:entry', ns):
-        authors = ', '.join([a.find('atom:name', ns).text for a in entry.findall('atom:author', ns)])
-        year = entry.find('atom:published', ns).text[:4]
-        results.append({
-            'Title': entry.find('atom:title', ns).text.strip(),
-            'Source': 'arXiv',
-            'Authors': authors,
-            'Year': int(year),
-            'Journal': 'arXiv',
-            'Language': 'English',
-            'Type': 'preprint',
-            'Focus': query
-        })
-    return results
-
-def get_publications_core(keyword_list, api_key, page_size=100, logic='OR', start_year=None, end_year=None):
-    """Fetches publication data from CORE API v3."""
-    if not api_key:
-        print("CORE API key is required for full access.")
-        return []
-    # Build query string for title keywords
-    if logic == 'AND':
-        title_query = ' AND '.join([f'title:"{k}"' for k in keyword_list])
-    else:
-        title_query = ' OR '.join([f'title:"{k}"' for k in keyword_list])
-    # Add year range and full text existence
-    year_query = ''
-    if start_year and end_year:
-        year_query = f' AND yearPublished>="{start_year}" AND yearPublished<="{end_year}"'
-    fulltext_query = ' AND _exists_:fullText'
-    query = f'({title_query}){year_query}{fulltext_query}'
-    url = 'https://api.core.ac.uk/v3/search/works'
-    params = {'q': query, 'limit': page_size}
-    headers = {'Accept': 'application/json', 'Authorization': api_key}
-    response = robust_get(url, params=params, headers=headers)
-    if not response:
-        print(f"CORE API error: failed after retries.")
-        return []
-    data = response.json()
-    results = []
-    for item in data.get('results', []):
-        # Safely extract author names
-        authors = ''
-        if isinstance(item.get('authors', []), list):
-            authors = ', '.join([a.get('name', '') for a in item.get('authors', []) if isinstance(a, dict) and 'name' in a])
-        results.append({
-            'Title': item.get('title', ''),
-            'Source': 'CORE',
-            'Authors': authors,
-            'Year': item.get('yearPublished', ''),
-            'Journal': item.get('publisher', ''),
-            'Language': item.get('language', 'English'),
-            'Type': item.get('documentType', ''),
-            'Focus': query
-        })
-    return results
-
-def get_publications_semanticscholar(keyword_list, page_size=100, logic='OR', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
-    """Fetches publication data from Semantic Scholar API with advanced filtering."""
-    query = ' '.join(keyword_list)
-    url = 'https://api.semanticscholar.org/graph/v1/paper/search'
-    params = {'query': query, 'limit': page_size}
-    # Add year range
-    if start_year and end_year:
-        params['year'] = f'{start_year}-{end_year}'
-    # Add open access filter
-    if open_access:
-        params['openAccessPdf'] = 'true'
-    # Add fields of study
-    if fields_of_study:
-        params['fieldsOfStudy'] = ','.join(fields_of_study)
-    # Set fields to retrieve
-    base_fields = ['title', 'year', 'authors', 'venue']
-    if extra_fields:
-        base_fields += extra_fields
-    params['fields'] = ','.join(base_fields)
-    response = robust_get(url, params=params)
-    if not response:
-        return []
-    data = response.json()
-    results = []
-    for item in data.get('data', []):
-        authors = ', '.join([a.get('name', '') for a in item.get('authors', [])])
-        results.append({
-            'Title': item.get('title', ''),
-            'Source': 'SemanticScholar',
-            'Authors': authors,
-            'Year': item.get('year', ''),
-            'Journal': item.get('venue', ''),
-            'Language': 'English',
-            'Type': 'journal article',
-            'Focus': query,
-            'Url': item.get('url', ''),
-            'Abstract': item.get('abstract', '')
-        })
-    return results
-
-def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed', logic='OR', output_dir='output', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
-    results = []
-    print(f'Searching database {db_name}')
-    if db_name == 'PubMed':
-        results = get_publications_europe_pmc(keyword_list, page_size, logic)
-    elif db_name == 'CrossRef':
-        results = get_publications_crossref(keyword_list, page_size, logic)
-    elif db_name == 'arXiv':
-        results = get_publications_arxiv(keyword_list, page_size, logic)
-    elif db_name == 'CORE':
-        results = get_publications_core(keyword_list, api_key, page_size, logic, start_year, end_year)
-    elif db_name == 'SemanticScholar':
-        results = get_publications_semanticscholar(keyword_list, page_size, logic, start_year, end_year, open_access, fields_of_study, extra_fields)
-    else:
-        print(f'No database {db_name} Found')
-    print(f'Searched database {db_name} Found {len(results)} results')
-    # Convert results list to JSON and output to file
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    json_path = os.path.join(output_dir, f'search_database_results_{db_name}.json')
-    with open(json_path, 'w') as jf:
-        json.dump(results, jf, indent=2)
-    return results
 
 def parse_date_range(date_range):
-    # Expects format 'YYYY-YYYY' or 'YYYY'
     if '-' in date_range:
         start, end = date_range.split('-')
         return int(start), int(end)
@@ -240,80 +25,23 @@ def parse_date_range(date_range):
         year = int(date_range)
         return year, year
 
-def create_prisma_drawio_diagram(criteria_counts, total_records, output_dir='output'):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    draw_io_file = drawpyo.File(file_name="prisma_flow_diagram.drawio", file_path=output_dir)
-    page = drawpyo.Page(file=draw_io_file)
-    # Main boxes
-    box_identified = drawpyo.diagram.Object(page=page, x=400, y=80, width=200, height=60, text=f"Records identified:\n{total_records}")
-    box_screened = drawpyo.diagram.Object(page=page, x=400, y=200, width=200, height=60, text=f"Records screened:\n{total_records}")
-    box_excluded = drawpyo.diagram.Object(page=page, x=120, y=320, width=200, height=60, text=f"Records excluded:\n{criteria_counts['exclusion']}")
-    box_included = drawpyo.diagram.Object(page=page, x=400, y=440, width=200, height=60, text=f"Records included:\n{criteria_counts['inclusion']}")
-    # Arrows between main boxes
-    drawpyo.diagram.Object(page=page, source=box_identified, target=box_screened)
-    drawpyo.diagram.Object(page=page, source=box_screened, target=box_excluded)
-    drawpyo.diagram.Object(page=page, source=box_screened, target=box_included)
-    # Exclusion criteria boxes on right
-    y_start = 320
-    for i, (crit, count) in enumerate(criteria_counts['by_criteria'].items()):
-        y = y_start + i*80
-        excl_box = drawpyo.diagram.Object(page=page, x=700, y=y, width=260, height=50, text=f"{crit}: {count}")
-        drawpyo.diagram.Object(page=page, source=box_excluded, target=excl_box)
-    # Save as draw.io file
-    draw_io_file.write()
-    print(f"\nPRISMA flow diagram saved as '{os.path.join(output_dir, 'prisma_flow_diagram.drawio')}' (draw.io compatible).")
-
-def output_prisma_results(results, criteria_counts, total_records, output_dir='output'):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    # Write output CSV
-    csv_path = os.path.join(output_dir, 'output_results.csv')
-    with open(csv_path, 'w', newline='') as csvfile:
-        fieldnames = ['Title', 'Authors', 'Year', 'Journal', 'Included']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in results:
-            writer.writerow({k: row[k] for k in fieldnames})
-    # Write output JSON
-    json_path = os.path.join(output_dir, 'results.json')
-    with open(json_path, 'w') as jf:
-        json.dump({
-            'results': results,
-            'criteria_counts': {k: (v if not isinstance(v, Counter) else dict(v)) for k, v in criteria_counts.items()},
-            'total_records': total_records
-        }, jf, indent=2)
-    # Print summary of criteria effects
-    print('PRISMA Criteria Application Summary:')
-    print(f"Included: {criteria_counts['inclusion']}")
-    print(f"Excluded: {criteria_counts['exclusion']}")
-    for crit, count in criteria_counts['by_criteria'].items():
-        print(f"Excluded by '{crit}': {count}")
-    # Output PRISMA flowchart (ASCII art)
-    print('\nPRISMA Selection Flowchart:')
-    print(f"Records identified: {total_records}")
-    print("    |")
-    print(f"    ├─ Records screened: {total_records}")
-    print("    |     |\n    |     ├─ Records excluded: {0}".format(criteria_counts['exclusion']))
-    for crit, count in criteria_counts['by_criteria'].items():
-        print(f"    |     |    └─ {crit}: {count}")
-    print("    |     |\n    |     └─ Records included: {0}".format(criteria_counts['inclusion']))
-    # Output PRISMA flow diagram (Mermaid syntax, for research figure):
-    print('\nPRISMA Flow Diagram (Mermaid syntax, for research figure):')
-    print(f'''\ngraph TD\n    A[Records identified: {total_records}] --> B[Records screened: {total_records}]\n    B --> C[Records excluded: {criteria_counts['exclusion']}]''')
-    for crit, count in criteria_counts['by_criteria'].items():
-        print(f"    C --> C_{crit.replace(' ', '_')}[{crit}: {count}]")
-    print(f"    B --> D[Records included: {criteria_counts['inclusion']}]")
-    print("'")
-    # Output methodology text
-    with open('sample_prisma_method.txt', 'r') as f:
-        method_text = f.read()
-    print('\nMethodology for Literature Review Section:\n')
-    print(method_text)
+def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed', logic='OR', output_dir='output', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
+    if db_name == 'PubMed':
+        return get_publications_europe_pmc(keyword_list, page_size, logic)
+    elif db_name == 'CrossRef':
+        return get_publications_crossref(keyword_list, page_size, logic)
+    elif db_name == 'arXiv':
+        return get_publications_arxiv(keyword_list, page_size, logic)
+    elif db_name == 'CORE':
+        return get_publications_core(keyword_list, api_key, page_size, logic, start_year, end_year)
+    elif db_name == 'SemanticScholar':
+        return get_publications_semanticscholar(keyword_list, page_size, logic, start_year, end_year, open_access, fields_of_study, extra_fields)
+    else:
+        print(f'No database {db_name} Found')
+        return []
 
 def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, output_dir='output'):
-    with open(config_file, 'r') as f:
-        input_data = json.load(f)
+    input_data = load_config(config_file)
     criteria = input_data['initial_prisma_values']
     api_keys = input_data.get('api_keys', {})
     research_topic = input_data.get('research_topic', '')
@@ -324,25 +52,30 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     exclusion_criteria = [c.lower() for c in criteria.get('exclusion_criteria', [])]
     databases = criteria.get('databases', ['PubMed'])
     results = []
-    criteria_counts = { 'inclusion': 0, 'exclusion': 0, 'by_criteria': Counter() }
+    criteria_counts = {'inclusion': 0, 'exclusion': 0, 'by_criteria': Counter()}
     publications = []
     for db_name in databases:
-        publications += search_database(keyword_list, api_key=api_keys.get(db_name, None), 
-                    page_size=page_size, db_name=db_name, logic=logic, output_dir=output_dir, start_year=start_year, end_year=end_year)
+        publications += search_database(
+            keyword_list,
+            api_key=api_keys.get(db_name, None),
+            page_size=page_size,
+            db_name=db_name,
+            logic=logic,
+            output_dir=output_dir,
+            start_year=start_year,
+            end_year=end_year
+        )
     for pub in publications:
         included = False
         reasons = []
-        # Article must be within date range AND contain any inclusion criteria
         in_date_range = pub['Year'] and (start_year <= pub['Year'] <= end_year)
         has_inclusion = any(inc in pub['Type'].lower() for inc in inclusion_criteria)
         if in_date_range and has_inclusion:
             included = True
-        # If article contains any exclusion criteria, set included = False
         for exc in exclusion_criteria:
             if exc in pub['Type'].lower():
                 included = False
                 reasons.append(f"Has exclusion: {exc}")
-        # Add reasons for not included
         if not included:
             if not in_date_range:
                 reasons.append(f'Published outside {date_range}')

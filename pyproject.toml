@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling >= 1.26", "matplotlib==3.10.3", "drawpyo==0.2.2"]
+build-backend = "hatchling.build"
+[project]
+name = "research_search_shanaka"
+version = "0.0.1"
+authors = [
+  { name="Shanaka Prageeth", email="wasp.bites.jp@gmail.com" },
+]
+description = "This package search for literature on multiple databases and allow uses to filter them using PRISMA method"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL-3.0-only"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/shanakaprageeth/prisma_search"
+Issues = "https://github.com/shanakaprageeth/prisma_search/issues"

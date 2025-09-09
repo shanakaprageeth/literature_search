@@ -1,4 +1,5 @@
 output/
+dist/
 .venv
 .env
 .pyc
