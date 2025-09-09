@@ -7,6 +7,7 @@ import drawpyo
 from collections import Counter
 import re
 import os
+import time
 
 STOPWORDS = set([
     'the', 'and', 'for', 'with', 'that', 'from', 'this', 'have', 'are', 'was', 'were', 'has', 'had', 'but', 'not', 'all', 'can', 'will', 'into', 'out', 'over', 'under', 'more', 'than', 'such', 'their', 'they', 'them', 'been', 'also', 'which', 'when', 'where', 'who', 'what', 'how', 'why', 'your', 'about', 'after', 'before', 'between', 'each', 'other', 'some', 'any', 'our', 'his', 'her', 'its', 'on', 'in', 'of', 'to', 'by', 'as', 'at', 'an', 'or', 'is', 'a', 'be', 'it'
@@ -17,6 +18,23 @@ def get_keywords(research_topic):
     words = re.findall(r'\b\w+\b', research_topic.lower())
     keywords = [w for w in words if w not in STOPWORDS and len(w) > 3]
     return list(set(keywords))
+
+def robust_get(url, params=None, headers=None, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, params=params, headers=headers)
+            if response.status_code == 200:
+                return response
+            else:
+                wait = 2 ** attempt
+                print(f"Request failed (status {response.status_code}), retrying in {wait}s...")
+                time.sleep(wait)
+        except Exception as e:
+            wait = 2 ** attempt
+            print(f"Request error: {e}, retrying in {wait}s...")
+            time.sleep(wait)
+    print(f"Failed to get a valid response from {url} after {max_retries} attempts.")
+    return None
 
 def get_publications_europe_pmc(keyword_list, page_size=100, logic='OR'):
     """
@@ -34,8 +52,9 @@ def get_publications_europe_pmc(keyword_list, page_size=100, logic='OR'):
         'format': 'json',
         'pageSize': page_size
     }
-    response = requests.get(url, params=params)
-    response.raise_for_status()
+    response = robust_get(url, params=params)
+    if not response:
+        return []
     data = response.json()
     results = []
     for record in data.get('resultList', {}).get('result', []):
@@ -53,12 +72,12 @@ def get_publications_europe_pmc(keyword_list, page_size=100, logic='OR'):
 
 def get_publications_crossref(keyword_list, page_size=100, logic='OR'):
     """Fetches publication data from CrossRef API."""
-    import requests
     query = ' '.join(keyword_list)
     url = f'https://api.crossref.org/works'
     params = {'query': query, 'rows': page_size}
-    response = requests.get(url, params=params)
-    response.raise_for_status()
+    response = robust_get(url, params=params)
+    if not response:
+        return []
     data = response.json()
     results = []
     for item in data.get('message', {}).get('items', []):
@@ -82,12 +101,12 @@ def get_publications_crossref(keyword_list, page_size=100, logic='OR'):
 
 def get_publications_arxiv(keyword_list, page_size=100, logic='OR'):
     """Fetches publication data from arXiv API."""
-    import requests
     import xml.etree.ElementTree as ET
     query = '+AND+'.join(keyword_list) if logic == 'AND' else '+OR+'.join(keyword_list)
     url = f'http://export.arxiv.org/api/query?search_query=all:{query}&start=0&max_results={page_size}'
-    response = requests.get(url)
-    response.raise_for_status()
+    response = robust_get(url)
+    if not response:
+        return []
     root = ET.fromstring(response.content)
     ns = {'atom': 'http://www.w3.org/2005/Atom'}
     results = []
@@ -106,25 +125,41 @@ def get_publications_arxiv(keyword_list, page_size=100, logic='OR'):
         })
     return results
 
-def get_publications_core(keyword_list, page_size=100, logic='OR'):
-    """Fetches publication data from CORE API."""
-    import requests
-    query = ' '.join(keyword_list)
-    url = f'https://core.ac.uk:443/api-v2/search/{query}'
-    # Note: For full access, an API key is required. This demo uses open endpoint.
-    params = {'page': 1, 'pageSize': page_size}
-    headers = {'Accept': 'application/json'}
-    response = requests.get(url, params=params, headers=headers)
-    if response.status_code != 200:
+def get_publications_core(keyword_list, api_key, page_size=100, logic='OR', start_year=None, end_year=None):
+    """Fetches publication data from CORE API v3."""
+    if not api_key:
+        print("CORE API key is required for full access.")
+        return []
+    # Build query string for title keywords
+    if logic == 'AND':
+        title_query = ' AND '.join([f'title:"{k}"' for k in keyword_list])
+    else:
+        title_query = ' OR '.join([f'title:"{k}"' for k in keyword_list])
+    # Add year range and full text existence
+    year_query = ''
+    if start_year and end_year:
+        year_query = f' AND yearPublished>="{start_year}" AND yearPublished<="{end_year}"'
+    fulltext_query = ' AND _exists_:fullText'
+    query = f'({title_query}){year_query}{fulltext_query}'
+    url = 'https://api.core.ac.uk/v3/search/works'
+    params = {'q': query, 'limit': page_size}
+    headers = {'Accept': 'application/json', 'Authorization': api_key}
+    response = robust_get(url, params=params, headers=headers)
+    if not response:
+        print(f"CORE API error: failed after retries.")
         return []
     data = response.json()
     results = []
-    for item in data.get('data', []):
+    for item in data.get('results', []):
+        # Safely extract author names
+        authors = ''
+        if isinstance(item.get('authors', []), list):
+            authors = ', '.join([a.get('name', '') for a in item.get('authors', []) if isinstance(a, dict) and 'name' in a])
         results.append({
             'Title': item.get('title', ''),
             'Source': 'CORE',
-            'Authors': item.get('authors', ''),
-            'Year': int(item.get('publishedDate', '0')[:4]) if item.get('publishedDate') else '',
+            'Authors': authors,
+            'Year': item.get('yearPublished', ''),
             'Journal': item.get('publisher', ''),
             'Language': item.get('language', 'English'),
             'Type': item.get('documentType', ''),
@@ -132,14 +167,27 @@ def get_publications_core(keyword_list, page_size=100, logic='OR'):
         })
     return results
 
-def get_publications_semanticscholar(keyword_list, page_size=100, logic='OR'):
-    """Fetches publication data from Semantic Scholar API."""
-    import requests
+def get_publications_semanticscholar(keyword_list, page_size=100, logic='OR', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
+    """Fetches publication data from Semantic Scholar API with advanced filtering."""
     query = ' '.join(keyword_list)
-    url = f'https://api.semanticscholar.org/graph/v1/paper/search'
-    params = {'query': query, 'limit': page_size, 'fields': 'title,authors,year,venue'}
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
+    url = 'https://api.semanticscholar.org/graph/v1/paper/search'
+    params = {'query': query, 'limit': page_size}
+    # Add year range
+    if start_year and end_year:
+        params['year'] = f'{start_year}-{end_year}'
+    # Add open access filter
+    if open_access:
+        params['openAccessPdf'] = 'true'
+    # Add fields of study
+    if fields_of_study:
+        params['fieldsOfStudy'] = ','.join(fields_of_study)
+    # Set fields to retrieve
+    base_fields = ['title', 'year', 'authors', 'venue']
+    if extra_fields:
+        base_fields += extra_fields
+    params['fields'] = ','.join(base_fields)
+    response = robust_get(url, params=params)
+    if not response:
         return []
     data = response.json()
     results = []
@@ -153,11 +201,13 @@ def get_publications_semanticscholar(keyword_list, page_size=100, logic='OR'):
             'Journal': item.get('venue', ''),
             'Language': 'English',
             'Type': 'journal article',
-            'Focus': query
+            'Focus': query,
+            'Url': item.get('url', ''),
+            'Abstract': item.get('abstract', '')
         })
     return results
 
-def search_database(keyword_list, page_size=100, db_name='PubMed', logic='OR', output_dir='output'):
+def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed', logic='OR', output_dir='output', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
     results = []
     print(f'Searching database {db_name}')
     if db_name == 'PubMed':
@@ -167,9 +217,9 @@ def search_database(keyword_list, page_size=100, db_name='PubMed', logic='OR', o
     elif db_name == 'arXiv':
         results = get_publications_arxiv(keyword_list, page_size, logic)
     elif db_name == 'CORE':
-        results = get_publications_core(keyword_list, page_size, logic)
+        results = get_publications_core(keyword_list, api_key, page_size, logic, start_year, end_year)
     elif db_name == 'SemanticScholar':
-        results = get_publications_semanticscholar(keyword_list, page_size, logic)
+        results = get_publications_semanticscholar(keyword_list, page_size, logic, start_year, end_year, open_access, fields_of_study, extra_fields)
     else:
         print(f'No database {db_name} Found')
     print(f'Searched database {db_name} Found {len(results)} results')
@@ -265,6 +315,7 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     with open(config_file, 'r') as f:
         input_data = json.load(f)
     criteria = input_data['initial_prisma_values']
+    api_keys = input_data.get('api_keys', {})
     research_topic = input_data.get('research_topic', '')
     keyword_list = input_data.get('keywords') or get_keywords(research_topic)
     date_range = criteria.get('date_range', '1900-2100')
@@ -276,22 +327,29 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     criteria_counts = { 'inclusion': 0, 'exclusion': 0, 'by_criteria': Counter() }
     publications = []
     for db_name in databases:
-        publications += search_database(keyword_list, page_size, db_name, logic, output_dir=output_dir)
+        publications += search_database(keyword_list, api_key=api_keys.get(db_name, None), 
+                    page_size=page_size, db_name=db_name, logic=logic, output_dir=output_dir, start_year=start_year, end_year=end_year)
     for pub in publications:
-        included = True
+        included = False
         reasons = []
-        if pub['Year'] and (pub['Year'] < start_year or pub['Year'] > end_year):
-            included = False
-            reasons.append(f'Published outside {date_range}')
-        for inc in inclusion_criteria:
-            if inc not in pub['Type'].lower():
-                included = False
-                reasons.append(f"Missing inclusion: {inc}")
-        # Exclusion criteria
+        # Article must be within date range AND contain any inclusion criteria
+        in_date_range = pub['Year'] and (start_year <= pub['Year'] <= end_year)
+        has_inclusion = any(inc in pub['Type'].lower() for inc in inclusion_criteria)
+        if in_date_range and has_inclusion:
+            included = True
+        # If article contains any exclusion criteria, set included = False
         for exc in exclusion_criteria:
             if exc in pub['Type'].lower():
                 included = False
                 reasons.append(f"Has exclusion: {exc}")
+        # Add reasons for not included
+        if not included:
+            if not in_date_range:
+                reasons.append(f'Published outside {date_range}')
+            if not has_inclusion:
+                for inc in inclusion_criteria:
+                    if inc not in pub['Type'].lower():
+                        reasons.append(f"Missing inclusion: {inc}")
         results.append({
             'Title': pub['Title'],
             'Authors': pub['Authors'],
