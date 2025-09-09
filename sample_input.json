@@ -2,9 +2,9 @@
   "research_topic": "Machine learning applications in medical imaging",
   "keywords" : ["medical-imaging", "machine-learning"],
   "initial_prisma_values": {
-    "inclusion_criteria": ["review", "journal"],
+    "inclusion_criteria": ["review", "journal", "book-chapter"],
     "exclusion_criteria": ["non-english", "conference"],
-    "databases": ["PubMed", "IEEE Xplore", "Scopus"],
-    "date_range": "2010-2025"
+    "databases": ["arXiv"],
+    "date_range": "2015-2025"
   }
 }

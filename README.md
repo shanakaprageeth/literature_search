@@ -31,3 +31,5 @@ See `copilot-instructions.md` for coding standards.
 
 ## License
 MIT
+
+"databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
