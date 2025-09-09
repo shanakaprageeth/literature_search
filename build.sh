@@ -7,8 +7,12 @@ pip3 uninstall -y research_search_shanaka || true
 
 # Build the package
 python3 -m pip install --upgrade build
+python3 -m pip install -r requirements.txt
 python3 -m build
 
 # Install the new package
 echo "Installing new research_search_shanaka..."
 pip3 install dist/research_search_shanaka-*.whl
+
+# Testing
+pytest tests

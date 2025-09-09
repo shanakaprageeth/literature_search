@@ -1,5 +1,7 @@
 output/
 dist/
+**/**/.pytest_cache/
+**/**/__pycache__/
 .venv
 .env
 .pyc

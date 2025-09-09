@@ -88,9 +88,6 @@ def get_publications_arxiv(keyword_list: List[str], page_size: int = 100, logic:
     return results
 
 def get_publications_core(keyword_list: List[str], api_key: str, page_size: int = 100, logic: str = 'OR', start_year: int = None, end_year: int = None) -> List[Dict[str, Any]]:
-    if not api_key:
-        print("CORE API key is required for full access.")
-        return []
     if logic == 'AND':
         title_query = ' AND '.join([f'title:"{k}"' for k in keyword_list])
     else:
@@ -102,7 +99,11 @@ def get_publications_core(keyword_list: List[str], api_key: str, page_size: int 
     query = f'({title_query}){year_query}{fulltext_query}'
     url = 'https://api.core.ac.uk/v3/search/works'
     params = {'q': query, 'limit': page_size}
-    headers = {'Accept': 'application/json', 'Authorization': api_key}
+    if api_key:
+        headers = {'Accept': 'application/json', 'Authorization': api_key}
+    else:
+        headers = {'Accept': 'application/json'}
+        print("Warning: CORE API key not provided. Access may be limited.")
     response = robust_get(url, params=params, headers=headers)
     if not response:
         print(f"CORE API error: failed after retries.")
