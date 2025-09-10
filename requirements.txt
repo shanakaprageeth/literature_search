@@ -1,0 +1,4 @@
+matplotlib==3.10.3
+drawpyo==0.2.2
+pytest==8.4.2
+requests

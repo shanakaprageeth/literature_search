@@ -1,0 +1,114 @@
+# Copyright (c) 2024 Shanaka Abeysiriwardhana
+# This file is part of research_search_shanaka and is licensed under the GNU GPL v3.
+# Please carry the copyright notice in derived works.
+# See LICENSE file for details.
+import argparse
+from collections import Counter
+from research_search_shanaka.config_loader import load_config
+from research_search_shanaka.keywords import get_keywords
+from research_search_shanaka.api_clients import (
+    get_publications_europe_pmc,
+    get_publications_crossref,
+    get_publications_arxiv,
+    get_publications_core,
+    get_publications_semanticscholar
+)
+from research_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from research_search_shanaka.utils import robust_get
+import os
+
+def parse_date_range(date_range):
+    if '-' in date_range:
+        start, end = date_range.split('-')
+        return int(start), int(end)
+    else:
+        year = int(date_range)
+        return year, year
+
+def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed', logic='OR', output_dir='output', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
+    if db_name == 'PubMed':
+        return get_publications_europe_pmc(keyword_list, page_size, logic)
+    elif db_name == 'CrossRef':
+        return get_publications_crossref(keyword_list, page_size, logic)
+    elif db_name == 'arXiv':
+        return get_publications_arxiv(keyword_list, page_size, logic)
+    elif db_name == 'CORE':
+        return get_publications_core(keyword_list, api_key, page_size, logic, start_year, end_year)
+    elif db_name == 'SemanticScholar':
+        return get_publications_semanticscholar(keyword_list, page_size, logic, start_year, end_year, open_access, fields_of_study, extra_fields)
+    else:
+        print(f'No database {db_name} Found')
+        return []
+
+def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, output_dir='output'):
+    input_data = load_config(config_file)
+    criteria = input_data['initial_prisma_values']
+    api_keys = input_data.get('api_keys', {})
+    research_topic = input_data.get('research_topic', '')
+    keyword_list = input_data.get('keywords') or get_keywords(research_topic)
+    date_range = criteria.get('date_range', '1900-2100')
+    start_year, end_year = parse_date_range(date_range)
+    inclusion_criteria = [c.lower() for c in criteria.get('inclusion_criteria', [])]
+    exclusion_criteria = [c.lower() for c in criteria.get('exclusion_criteria', [])]
+    databases = criteria.get('databases', ['PubMed'])
+    results = []
+    criteria_counts = {'inclusion': 0, 'exclusion': 0, 'by_criteria': Counter()}
+    publications = []
+    for db_name in databases:
+        publications += search_database(
+            keyword_list,
+            api_key=api_keys.get(db_name, None),
+            page_size=page_size,
+            db_name=db_name,
+            logic=logic,
+            output_dir=output_dir,
+            start_year=start_year,
+            end_year=end_year
+        )
+    for pub in publications:
+        included = False
+        reasons = []
+        in_date_range = pub['Year'] and (start_year <= pub['Year'] <= end_year)
+        has_inclusion = any(inc in pub['Type'].lower() for inc in inclusion_criteria)
+        if in_date_range and has_inclusion:
+            included = True
+        for exc in exclusion_criteria:
+            if exc in pub['Type'].lower():
+                included = False
+                reasons.append(f"Has exclusion: {exc}")
+        if not included:
+            if not in_date_range:
+                reasons.append(f'Published outside {date_range}')
+            if not has_inclusion:
+                for inc in inclusion_criteria:
+                    if inc not in pub['Type'].lower():
+                        reasons.append(f"Missing inclusion: {inc}")
+        results.append({
+            'Title': pub['Title'],
+            'Authors': pub['Authors'],
+            'Year': pub['Year'],
+            'Journal': pub['Journal'],
+            'Included': 'Yes' if included else 'No',
+            'Reasons': '; '.join(reasons) if reasons else 'Meets all criteria'
+        })
+        if included:
+            criteria_counts['inclusion'] += 1
+        else:
+            criteria_counts['exclusion'] += 1
+            for r in reasons:
+                criteria_counts['by_criteria'][r] += 1
+    total_records = len(publications)
+    output_prisma_results(results, criteria_counts, total_records, output_dir=output_dir)
+    create_prisma_drawio_diagram(criteria_counts, total_records, output_dir=output_dir)
+
+def main():
+    parser = argparse.ArgumentParser(description='PRISMA Literature Review Tool')
+    parser.add_argument('--config', type=str, default='sample_input.json', help='Path to config JSON file')
+    parser.add_argument('--logic', type=str, choices=['AND', 'OR'], default='OR', help='Keyword combination logic')
+    parser.add_argument('--page_size', type=int, default=100, help='Number of results per database')
+    parser.add_argument('--output_dir', type=str, default='output', help='Directory to save outputs')
+    args = parser.parse_args()
+    search_prisma(config_file=args.config, logic=args.logic, page_size=args.page_size, output_dir=args.output_dir)
+
+if __name__ == "__main__":
+    main()
