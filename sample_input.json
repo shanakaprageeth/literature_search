@@ -7,8 +7,4 @@
     "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
     "date_range": "2015-2025"
   },
-  "api_keys" : {
-    "CORE": "dc9g21HFVzQL6qaPEAyoriu0pnvKZjNO",
-    "SemanticScholar": "ZUd37WEmKnhIlKN3moMU6CU8noXlNNs6jPC4QAh2"
-  }
 }
