@@ -25,6 +25,19 @@ def load_config(config_file: str) -> Dict[str, Any]:
     # Validate research_topic or keywords
     if not input_data.get('research_topic') and not input_data.get('keywords'):
         raise ValueError("Either 'research_topic' or 'keywords' must be provided in config file.")
+    
+    # Process keywords field - handle both list and comma-separated string
+    if 'keywords' in input_data:
+        keywords = input_data['keywords']
+        if isinstance(keywords, str):
+            # Convert comma-separated string to list and strip whitespace
+            input_data['keywords'] = [kw.strip() for kw in keywords.split(',') if kw.strip()]
+        elif isinstance(keywords, list):
+            # Ensure all keywords are strings and strip whitespace
+            input_data['keywords'] = [str(kw).strip() for kw in keywords if str(kw).strip()]
+        else:
+            raise ValueError("'keywords' must be a list or comma-separated string.")
+    
     # Optionally validate api_keys
     if 'api_keys' in input_data and not isinstance(input_data['api_keys'], dict):
         raise ValueError("'api_keys' must be a dictionary if provided.")

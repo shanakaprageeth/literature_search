@@ -13,7 +13,27 @@ def output_prisma_results(results: List[Dict[str, Any]], criteria_counts: Dict[s
     """Write PRISMA results to CSV, JSON, and print summary/flowcharts."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    # Write output CSV
+    
+    # Write all publications found CSV
+    all_publications_path = os.path.join(output_dir, 'all_publications_found.csv')
+    with open(all_publications_path, 'w', newline='') as csvfile:
+        fieldnames = ['Title', 'Authors', 'Year', 'Journal', 'Included', 'Reasons']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in results:
+            writer.writerow(row)
+    
+    # Write selected publications CSV (only included ones)
+    selected_publications = [row for row in results if row['Included'] == 'Yes']
+    selected_path = os.path.join(output_dir, 'selected_publications.csv')
+    with open(selected_path, 'w', newline='') as csvfile:
+        fieldnames = ['Title', 'Authors', 'Year', 'Journal']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in selected_publications:
+            writer.writerow({k: row[k] for k in fieldnames})
+    
+    # Write original output CSV for backward compatibility
     csv_path = os.path.join(output_dir, 'output_results.csv')
     with open(csv_path, 'w', newline='') as csvfile:
         fieldnames = ['Title', 'Authors', 'Year', 'Journal', 'Included']
@@ -21,6 +41,7 @@ def output_prisma_results(results: List[Dict[str, Any]], criteria_counts: Dict[s
         writer.writeheader()
         for row in results:
             writer.writerow({k: row[k] for k in fieldnames})
+    
     # Write output JSON
     json_path = os.path.join(output_dir, 'results.json')
     with open(json_path, 'w') as jf:
@@ -44,6 +65,14 @@ def output_prisma_results(results: List[Dict[str, Any]], criteria_counts: Dict[s
     for crit, count in criteria_counts['by_criteria'].items():
         print(f"    |     |    └─ {crit}: {count}")
     print("    |     |\n    |     └─ Records included: {0}".format(criteria_counts['inclusion']))
+    
+    # Print output file information
+    print(f'\nOutput files created in "{output_dir}" directory:')
+    print(f"  - all_publications_found.csv: All {total_records} publications with inclusion status and reasons")
+    print(f"  - selected_publications.csv: Only the {criteria_counts['inclusion']} included publications")
+    print(f"  - output_results.csv: All publications with inclusion status (backward compatibility)")
+    print(f"  - results.json: Complete results in JSON format")
+    
     # Output PRISMA flow diagram (Mermaid syntax, for research figure):
     print('\nPRISMA Flow Diagram (Mermaid syntax, for research figure):')
     print(f'''\ngraph TD\n    A[Records identified: {total_records}] --> B[Records screened: {total_records}]\n    B --> C[Records excluded: {criteria_counts['exclusion']}]''')
