@@ -6,5 +6,5 @@
     "exclusion_criteria": ["non-english", "conference"],
     "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
     "date_range": "2015-2025"
-  },
+  }
 }
