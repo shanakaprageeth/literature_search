@@ -3,6 +3,8 @@
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
 import argparse
+import json
+import sys
 from collections import Counter
 from research_search_shanaka.config_loader import load_config
 from research_search_shanaka.keywords import get_keywords
@@ -41,7 +43,22 @@ def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed',
         return []
 
 def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, output_dir='output'):
-    input_data = load_config(config_file)
+    """
+    Main PRISMA search function that loads config, searches databases, and generates outputs.
+    
+    Args:
+        config_file: Path to JSON configuration file
+        logic: Keyword combination logic ('AND' or 'OR')
+        page_size: Number of results per database
+        output_dir: Directory to save output files
+    """
+    try:
+        # Load and validate configuration
+        input_data = load_config(config_file)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
+    
     criteria = input_data['initial_prisma_values']
     api_keys = input_data.get('api_keys', {})
     research_topic = input_data.get('research_topic', '')
