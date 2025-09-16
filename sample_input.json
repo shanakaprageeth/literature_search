@@ -4,7 +4,10 @@
   "initial_prisma_values": {
     "inclusion_criteria": ["review", "thesis", "journal", "book"],
     "exclusion_criteria": ["non-english", "conference"],
-    "databases": ["PubMed", "CrossRef"],
+    "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
     "date_range": "2015-2025"
+  },
+  "api_keys": {
+    "CORE": "your_core_api_key_here"
   }
 }
