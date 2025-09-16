@@ -57,7 +57,14 @@ If no keywords are provided, the tool will automatically generate them from the 
 ```
 
 ## Installation
-To install the `research_search_shanaka` pip package, run:
+
+You can install the package directly using pip:
+
+```bash
+pip install research-search-shanaka
+```
+
+Or if you have the wheel file:
 
 ```bash
 pip install dist/research_search_shanaka-*.whl
@@ -65,7 +72,24 @@ pip install dist/research_search_shanaka-*.whl
 
 ## Usage
 
-### Command Line Interface
+### Console Script (Recommended)
+
+Once installed, you can use the `prisma-search` command directly from anywhere:
+
+```bash
+prisma-search --config sample_input.json --logic OR --page_size 100 --output_dir output
+```
+
+The console script accepts the following arguments:
+- `--config`: Path to config JSON file (default: sample_input.json)
+- `--logic`: Keyword combination logic ('AND' or 'OR', default: OR)
+- `--page_size`: Number of results per database (default: 100)
+- `--output_dir`: Directory to save outputs (default: output)
+
+### Alternative: Command Line Interface (Legacy)
+
+You can also run the script directly if you have the repository:
+
 ```bash
 python prisma_review.py --config sample_input.json --logic OR --page_size 100 --output_dir output
 ```
