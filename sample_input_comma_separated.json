@@ -1,6 +1,6 @@
 {
   "research_topic": "fundus image dataset",
-  "keywords" : ["medical-imaging", "machine-learning"],
+  "keywords": "medical-imaging, machine-learning, fundus, retinal, ophthalmology",
   "initial_prisma_values": {
     "inclusion_criteria": ["review", "thesis", "journal", "book"],
     "exclusion_criteria": ["non-english", "conference"],

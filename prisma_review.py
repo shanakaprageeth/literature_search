@@ -45,7 +45,15 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     criteria = input_data['initial_prisma_values']
     api_keys = input_data.get('api_keys', {})
     research_topic = input_data.get('research_topic', '')
-    keyword_list = input_data.get('keywords') or get_keywords(research_topic)
+    
+    # Handle keywords with warning when auto-generated
+    if input_data.get('keywords'):
+        keyword_list = input_data['keywords']
+        print(f"Using user-provided keywords: {keyword_list}")
+    else:
+        keyword_list = get_keywords(research_topic)
+        print(f"WARNING: No keywords provided in config. Auto-generated keywords from research topic: {keyword_list}")
+    
     date_range = criteria.get('date_range', '1900-2100')
     start_year, end_year = parse_date_range(date_range)
     inclusion_criteria = [c.lower() for c in criteria.get('inclusion_criteria', [])]

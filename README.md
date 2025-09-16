@@ -4,17 +4,57 @@
 This project helps automate and document literature reviews using the PRISMA methodology. It allows users to input a research topic or keywords, manages PRISMA data, and outputs publication lists and methodology text for research papers.
 
 ## Features
-- Accepts research topic or keywords from the user
-- Automatically derives keywords if only a topic is provided
+- **Flexible keyword input**: Accept keywords as a list or comma-separated string in the configuration file
+- **Smart keyword handling**: Automatically derives keywords from research topic if not provided, with warning message
+- **Enhanced output**: Creates multiple CSV files showing all publications found and selected publications at each stage
 - Collects initial PRISMA-related values (e.g., inclusion/exclusion criteria, databases, date ranges)
 - Outputs:
   - PRISMA method data for literature review methods section
-  - CSV file of selected publications
+  - Multiple CSV files:
+    - `all_publications_found.csv`: All publications with inclusion status and reasons
+    - `selected_publications.csv`: Only included publications
+    - `output_results.csv`: All publications with inclusion status (backward compatibility)
+  - JSON file with complete results
   - PRISMA flow diagram in draw.io format
 - Supports multiple databases: PubMed, CrossRef, arXiv, CORE, SemanticScholar
 - Validates configuration files for correctness
 - Retries API requests with exponential backoff for reliability
 - Modular design for extensibility
+
+## Configuration
+
+### Keywords Configuration
+You can provide keywords in your configuration file in two ways:
+
+1. **As a list** (original format):
+```json
+{
+  "keywords": ["machine learning", "deep learning", "neural networks"]
+}
+```
+
+2. **As a comma-separated string** (new format):
+```json
+{
+  "keywords": "machine learning, deep learning, neural networks"
+}
+```
+
+If no keywords are provided, the tool will automatically generate them from the `research_topic` and display a warning message.
+
+### Sample Configuration
+```json
+{
+  "research_topic": "fundus image dataset",
+  "keywords": "medical-imaging, machine-learning, fundus, retinal, ophthalmology",
+  "initial_prisma_values": {
+    "inclusion_criteria": ["review", "thesis", "journal", "book"],
+    "exclusion_criteria": ["non-english", "conference"],
+    "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
+    "date_range": "2015-2025"
+  }
+}
+```
 
 ## Installation
 To install the `research_search_shanaka` pip package, run:
@@ -24,6 +64,13 @@ pip install dist/research_search_shanaka-*.whl
 ```
 
 ## Usage
+
+### Command Line Interface
+```bash
+python prisma_review.py --config sample_input.json --logic OR --page_size 100 --output_dir output
+```
+
+### Programmatic Usage
 1. Import the package in your Python script:
 
 ```python
@@ -51,9 +98,12 @@ output_prisma_results(publications, criteria_counts, total_records, output_dir='
 create_prisma_drawio_diagram(criteria_counts, total_records, output_dir='output')
 ```
 
-## Output
-- `prisma_method.txt`: Text for your literature review methods section
-- `selected_publications.csv`: List of selected publications
+## Output Files
+The tool creates the following output files in the specified output directory:
+- `all_publications_found.csv`: All publications with inclusion status and exclusion reasons
+- `selected_publications.csv`: Only the publications that meet inclusion criteria
+- `output_results.csv`: All publications with inclusion status (for backward compatibility)
+- `results.json`: Complete results in JSON format including criteria counts
 - `prisma_flow_diagram.drawio`: PRISMA flow diagram for your research
 
 ## Requirements
@@ -63,11 +113,10 @@ create_prisma_drawio_diagram(criteria_counts, total_records, output_dir='output'
   - `requests`
   - `drawpyo`
   - `matplotlib`
+  - `pytest` (for testing)
 
 ## Contributing
 See `.github/copilot-instructions.md` for coding standards.
 
 ## License
 GPL-3
-
-"databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
