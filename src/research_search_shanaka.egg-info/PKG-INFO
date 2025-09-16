@@ -1,3 +1,17 @@
+Metadata-Version: 2.1
+Name: research-search-shanaka
+Version: 0.0.1
+Summary: This package search for literature on multiple databases and allow uses to filter them using PRISMA method
+Author-email: Shanaka Prageeth <wasp.bites.jp@gmail.com>
+License: GPL-3.0-only
+Project-URL: Homepage, https://github.com/shanakaprageeth/prisma_search
+Project-URL: Issues, https://github.com/shanakaprageeth/prisma_search/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+
 # PRISMA Search Literature Review Tool
 
 ## Overview
@@ -57,14 +71,7 @@ If no keywords are provided, the tool will automatically generate them from the 
 ```
 
 ## Installation
-
-You can install the package directly using pip:
-
-```bash
-pip install research-search-shanaka
-```
-
-Or if you have the wheel file:
+To install the `research_search_shanaka` pip package, run:
 
 ```bash
 pip install dist/research_search_shanaka-*.whl
@@ -72,24 +79,7 @@ pip install dist/research_search_shanaka-*.whl
 
 ## Usage
 
-### Console Script (Recommended)
-
-Once installed, you can use the `prisma-search` command directly from anywhere:
-
-```bash
-prisma-search --config sample_input.json --logic OR --page_size 100 --output_dir output
-```
-
-The console script accepts the following arguments:
-- `--config`: Path to config JSON file (default: sample_input.json)
-- `--logic`: Keyword combination logic ('AND' or 'OR', default: OR)
-- `--page_size`: Number of results per database (default: 100)
-- `--output_dir`: Directory to save outputs (default: output)
-
-### Alternative: Command Line Interface (Legacy)
-
-You can also run the script directly if you have the repository:
-
+### Command Line Interface
 ```bash
 python prisma_review.py --config sample_input.json --logic OR --page_size 100 --output_dir output
 ```

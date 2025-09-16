@@ -1,0 +1,2 @@
+[console_scripts]
+prisma-search = research_search_shanaka.cli:main
