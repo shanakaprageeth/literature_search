@@ -3,6 +3,7 @@
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
 import argparse
+import sys
 from collections import Counter
 from research_search_shanaka.config_loader import load_config
 from research_search_shanaka.keywords import get_keywords
@@ -18,12 +19,24 @@ from research_search_shanaka.utils import robust_get
 import os
 
 def parse_date_range(date_range):
-    if '-' in date_range:
-        start, end = date_range.split('-')
-        return int(start), int(end)
-    else:
-        year = int(date_range)
-        return year, year
+    """Parse date range string into start and end years.
+    
+    Args:
+        date_range: String in format 'YYYY-YYYY' or 'YYYY'
+        
+    Returns:
+        Tuple of (start_year, end_year)
+    """
+    try:
+        if '-' in date_range:
+            start, end = date_range.split('-', 1)
+            return int(start.strip()), int(end.strip())
+        else:
+            year = int(date_range.strip())
+            return year, year
+    except ValueError as e:
+        print(f"ERROR: Invalid date range format '{date_range}': {e}", file=sys.stderr)
+        sys.exit(1)
 
 def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed', logic='OR', output_dir='output', start_year=None, end_year=None, open_access=False, fields_of_study=None, extra_fields=None):
     if db_name == 'PubMed':
@@ -41,7 +54,17 @@ def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed',
         return []
 
 def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, output_dir='output'):
+    """Execute PRISMA literature search with the given configuration.
+    
+    Args:
+        config_file: Path to JSON configuration file
+        logic: Keyword combination logic ('AND' or 'OR')
+        page_size: Number of results per database
+        output_dir: Directory to save output files
+    """
+    # Load and validate configuration
     input_data = load_config(config_file)
+    
     criteria = input_data['initial_prisma_values']
     api_keys = input_data.get('api_keys', {})
     research_topic = input_data.get('research_topic', '')
@@ -53,6 +76,17 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     else:
         keyword_list = get_keywords(research_topic)
         print(f"WARNING: No keywords provided in config. Auto-generated keywords from research topic: {keyword_list}")
+    
+    # Create output directory if it doesn't exist
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except PermissionError:
+        print(f"ERROR: Permission denied when creating output directory '{output_dir}'.", file=sys.stderr)
+        print("Please ensure you have write permissions to the specified location.", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR: Could not create output directory '{output_dir}': {e}", file=sys.stderr)
+        sys.exit(1)
     
     date_range = criteria.get('date_range', '1900-2100')
     start_year, end_year = parse_date_range(date_range)
@@ -110,13 +144,43 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
     create_prisma_drawio_diagram(criteria_counts, total_records, output_dir=output_dir)
 
 def main():
-    parser = argparse.ArgumentParser(description='PRISMA Literature Review Tool')
-    parser.add_argument('--config', type=str, default='sample_input.json', help='Path to config JSON file')
-    parser.add_argument('--logic', type=str, choices=['AND', 'OR'], default='OR', help='Keyword combination logic')
-    parser.add_argument('--page_size', type=int, default=100, help='Number of results per database')
-    parser.add_argument('--output_dir', type=str, default='output', help='Directory to save outputs')
-    args = parser.parse_args()
-    search_prisma(config_file=args.config, logic=args.logic, page_size=args.page_size, output_dir=args.output_dir)
+    """Main entry point for the PRISMA Literature Review Tool."""
+    parser = argparse.ArgumentParser(
+        description='PRISMA Literature Review Tool',
+        epilog='Example: python prisma_review.py --config sample_input.json --logic OR --page_size 100'
+    )
+    parser.add_argument('--config', type=str, default='sample_input.json', 
+                        help='Path to config JSON file (default: sample_input.json)')
+    parser.add_argument('--logic', type=str, choices=['AND', 'OR'], default='OR', 
+                        help='Keyword combination logic (default: OR)')
+    parser.add_argument('--page_size', type=int, default=100, 
+                        help='Number of results per database (default: 100)')
+    parser.add_argument('--output_dir', type=str, default='output', 
+                        help='Directory to save outputs (default: output)')
+    
+    try:
+        args = parser.parse_args()
+        
+        # Validate page_size
+        if args.page_size <= 0:
+            print("ERROR: Page size must be a positive integer.", file=sys.stderr)
+            sys.exit(1)
+        
+        # Run the search
+        search_prisma(
+            config_file=args.config, 
+            logic=args.logic, 
+            page_size=args.page_size, 
+            output_dir=args.output_dir
+        )
+        
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"UNEXPECTED ERROR: {e}", file=sys.stderr)
+        print("Please check your configuration and try again.", file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
