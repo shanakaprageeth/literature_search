@@ -1,7 +1,9 @@
 output/
 dist/
+build/
+*.egg-info/
 **/**/.pytest_cache/
 **/**/__pycache__/
 .venv
 .env
-.pyc
+*.pyc
