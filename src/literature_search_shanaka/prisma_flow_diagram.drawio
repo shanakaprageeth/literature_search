@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.0.5">
+  <diagram name="Page-1" id="134632429879216">
+    <mxGraphModel dx="946" dy="517" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994544" value="Identification" style="rounded=0;whiteSpace=wrap;html=1;rotation=-90;fontFamily=Times New Roman;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="-63.75" y="183.75" width="257.5" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994559" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994545" target="gNmoB-aejwWawOHYXd3c-134632431994546" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994545" value="Keywords: {ADD_KEYWORDS}" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="150" y="70" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994560" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994546" target="gNmoB-aejwWawOHYXd3c-134632431994548" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994546" value="Records Identified through database searching&lt;br&gt;( n = {TOTAL_RECORDS_WITH_DUPLICATES} )" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="150" y="140" width="600" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994561" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994548" target="gNmoB-aejwWawOHYXd3c-134632431994549" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994548" value="Total Records with Duplicates :&lt;br&gt;( n = {TOTAL_RECORDS_WITH_DUPLICATES} )" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="150" y="210" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994562" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994549" target="gNmoB-aejwWawOHYXd3c-134632431994551" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994549" value="Total Unique Records : &lt;br&gt;( n = {TOTAL_RECORDS} )" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="150" y="280" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994550" value="Eligibility" style="rounded=0;whiteSpace=wrap;html=1;rotation=-90;fontFamily=Times New Roman;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="-2.18" y="537.82" width="134.38" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994563" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994551" target="gNmoB-aejwWawOHYXd3c-134632431994552" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994551" value="Automated Inclusion and exclusion criteria:&amp;nbsp;&lt;br&gt;( n= {AFTER_INCLUSION_EXCLUSION} )" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="150" y="350" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994552" value="Titles and Abstracts screened&lt;br&gt;(n = ABSTRACTS_SELECTED)" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="150" y="420" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994565" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994553" target="gNmoB-aejwWawOHYXd3c-134632431994557" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994566" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994553" target="gNmoB-aejwWawOHYXd3c-134632431994556" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994553" value="Full Text Articles Assessed&lt;br&gt;( n = FULL_TEXT_SELECTED)" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="175" y="545.01" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994554" value="Screening" style="rounded=0;whiteSpace=wrap;html=1;rotation=-90;fontFamily=Times New Roman;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="2.82" y="388.45" width="124.38" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994555" value="Inclusion" style="rounded=0;whiteSpace=wrap;html=1;rotation=-90;fontFamily=Times New Roman;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="15.635000000000007" y="669.995" width="98.75" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994556" value="SAMPLING_METHOD Sampling final selection&lt;br&gt;( n = SAMPLED_FINAL)" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="150" y="670" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994557" value="Manual assessment summary&lt;br&gt;Ex: not relevant fundus images" style="rounded=0;whiteSpace=wrap;html=1;rotation=0;fontFamily=Times New Roman;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="470" y="490.01" width="280" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="gNmoB-aejwWawOHYXd3c-134632431994564" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Times New Roman;fontStyle=1" parent="1" source="gNmoB-aejwWawOHYXd3c-134632431994552" target="gNmoB-aejwWawOHYXd3c-134632431994553" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

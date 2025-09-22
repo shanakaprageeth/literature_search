@@ -13,8 +13,8 @@ usage() {
 ACTION=${1:-build}
 
 # Uninstall old version if exists
-echo "Uninstalling old literature_review_shanaka if present..."
-pip3 uninstall -y literature_review_shanaka || true
+echo "Uninstalling old literature_search_shanaka if present..."
+pip3 uninstall -y literature_search_shanaka || true
 
 # Build the package
 if [[ "$ACTION" == "build" || "$ACTION" == "test" || "$ACTION" == "publish" ]]; then
@@ -26,11 +26,12 @@ fi
 
 # Test the package
 if [[ "$ACTION" == "test" || "$ACTION" == "publish" ]]; then
-    echo "Installing new literature_review_shanaka..."
-    pip3 install dist/literature_review_shanaka-*.whl
+    echo "Installing new literature_search_shanaka..."
+    pip3 install dist/literature_search_shanaka-*.whl
 
     echo "Running tests..."
     pytest tests
+    literature-search --config sample_input.json
 fi
 
 # Publish the package

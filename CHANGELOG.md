@@ -1,0 +1,13 @@
+## 0.0.1
+- Initial release
+- Implements PRISMA methodology for literature review automation
+- Supports flexible keyword input (list or comma-separated string)
+- Smart keyword handling (auto-derive from research topic if missing)
+- Outputs multiple CSV files and JSON with publication data and PRISMA stages
+- Generates PRISMA flow diagram in draw.io format (default/user template)
+- Supports multiple databases: PubMed, CrossRef, arXiv, CORE, SemanticScholar
+- Validates configuration files
+- Retries API requests with exponential backoff
+- Modular design for extensibility
+- Includes programmatic and CLI usage
+- Contribution guide and disclaimer added

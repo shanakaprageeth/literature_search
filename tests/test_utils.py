@@ -1,7 +1,7 @@
 # tests/test_utils.py
 import pytest
 from unittest.mock import patch
-from literature_review_shanaka.utils import robust_get
+from literature_search_shanaka.utils import robust_get
 import requests
 
 def test_robust_get_success():

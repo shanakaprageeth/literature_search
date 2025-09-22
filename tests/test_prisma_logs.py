@@ -1,5 +1,5 @@
 # tests/test_prisma_logs.py
-from literature_review_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from literature_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 import os
 from collections import Counter
 

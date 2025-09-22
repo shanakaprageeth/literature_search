@@ -1,6 +1,6 @@
 # tests/test_config_loader.py
 import pytest
-from literature_review_shanaka.config_loader import load_config
+from literature_search_shanaka.config_loader import load_config
 import json
 import sys
 from tempfile import NamedTemporaryFile
