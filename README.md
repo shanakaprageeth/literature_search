@@ -129,6 +129,16 @@ See `.github/copilot-instructions.md` for coding standards.
 4. Add tests for new features or fixes.
 5. Submit a pull request.
 
+### Package Publication
+
+The package is automatically published to PyPI when:
+1. Changes are merged to the main branch, AND
+2. The commit message starts with `[release]`
+
+For example: `[release] Version 1.0.0 with new features`
+
+The publication uses PyPI OIDC (OpenID Connect) for secure authentication without requiring API tokens.
+
 ## License
 GPL-3
 
