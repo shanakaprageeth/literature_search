@@ -24,6 +24,9 @@ Automate and document literature reviews using the PRISMA methodology. Input a r
 - Modular, extensible design
 
 ## PRISMA Flow Diagram Template
+
+![PRISMA Flow Diagram](.assets/prisma_flow_diagram.drawio.svg)
+
 Default template:  
 `src/literature_search/prisma_flow_diagram.drawio`  
 User template: place `prisma_flow_diagram.drawio` in output directory.  

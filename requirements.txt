@@ -3,3 +3,4 @@ drawpyo==0.2.2
 pytest==8.4.2
 requests
 twine
+wheel
