@@ -1,21 +1,21 @@
 # Copyright (c) 2024 Shanaka Abeysiriwardhana
-# This file is part of literature_search_shanaka and is licensed under the GNU GPL v3.
+# This file is part of literature_search and is licensed under the GNU GPL v3.
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
 import argparse
 import sys
 from collections import Counter
-from literature_search_shanaka.config_loader import load_config
-from literature_search_shanaka.keywords import get_keywords
-from literature_search_shanaka.api_clients import (
+from literature_search.config_loader import load_config
+from literature_search.keywords import get_keywords
+from literature_search.api_clients import (
     get_publications_europe_pmc,
     get_publications_crossref,
     get_publications_arxiv,
     get_publications_core,
     get_publications_semanticscholar
 )
-from literature_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
-from literature_search_shanaka.utils import robust_get
+from literature_search.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from literature_search.utils import robust_get
 import os
 
 def parse_date_range(date_range):

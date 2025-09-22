@@ -1,5 +1,5 @@
 # tests/test_keywords.py
-from literature_search_shanaka.keywords import get_keywords
+from literature_search.keywords import get_keywords
 
 def test_get_keywords():
     research_topic = "Machine learning for healthcare applications"
