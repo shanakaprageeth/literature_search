@@ -12,6 +12,10 @@ usage() {
 # Default action
 ACTION=${1:-build}
 
+# Uninstall old version if exists
+echo "Uninstalling old literature_search if present..."
+pip3 uninstall -y literature_search || true
+
 # Build the package
 if [[ "$ACTION" == "build" || "$ACTION" == "test" || "$ACTION" == "publish" ]]; then
     echo "Building the package..."
