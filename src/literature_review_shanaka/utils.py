@@ -1,8 +1,8 @@
 # Copyright (c) 2024 Shanaka Abeysiriwardhana
-# This file is part of research_search_shanaka and is licensed under the GNU GPL v3.
+# This file is part of literature_review_shanaka and is licensed under the GNU GPL v3.
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
-# src/research_search_shanaka/utils.py
+# src/literature_review_shanaka/utils.py
 import time
 import requests
 from typing import Optional, Dict

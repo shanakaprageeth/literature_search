@@ -33,7 +33,7 @@ jobs:
 
     - name: Install package
       run: |
-        pip install dist/research_search_shanaka-*.whl
+        pip install dist/literature_review_shanaka-*.whl
 
     - name: Run tests
       run: |

@@ -15,11 +15,21 @@ This project helps automate and document literature reviews using the PRISMA met
     - `selected_publications.csv`: Only included publications
     - `output_results.csv`: All publications with inclusion status (backward compatibility)
   - JSON file with complete results
-  - PRISMA flow diagram in draw.io format
+  - PRISMA flow diagram in draw.io format (uses a default template if no user-provided template is found)
 - Supports multiple databases: PubMed, CrossRef, arXiv, CORE, SemanticScholar
 - Validates configuration files for correctness
 - Retries API requests with exponential backoff for reliability
 - Modular design for extensibility
+
+## PRISMA Flow Diagram Template
+The tool uses a default `prisma_flow_diagram.drawio` template located in the `src/literature_review_shanaka` package. If you want to use your own template, place it in the output directory with the name `prisma_flow_diagram.drawio`. The tool will prioritize the user-provided template over the default one.
+
+Default template location:
+```
+src/literature_review_shanaka/prisma_flow_diagram.drawio
+```
+
+To use the default template, no additional configuration is required. The filled diagram will be saved as `prisma_flow_diagram_filled.drawio` in the output directory.
 
 ## Configuration
 
@@ -67,7 +77,7 @@ pip install research-search-shanaka
 Or if you have the wheel file:
 
 ```bash
-pip install dist/research_search_shanaka-*.whl
+pip install dist/literature_review_shanaka-*.whl
 ```
 
 ## Usage
@@ -98,16 +108,16 @@ python prisma_review.py --config sample_input.json --logic OR --page_size 100 --
 1. Import the package in your Python script:
 
 ```python
-from research_search_shanaka.config_loader import load_config
-from research_search_shanaka.keywords import get_keywords
-from research_search_shanaka.api_clients import (
+from literature_review_shanaka.config_loader import load_config
+from literature_review_shanaka.keywords import get_keywords
+from literature_review_shanaka.api_clients import (
     get_publications_europe_pmc,
     get_publications_crossref,
     get_publications_arxiv,
     get_publications_core,
     get_publications_semanticscholar
 )
-from research_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from literature_review_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 ```
 
 2. Use the provided functions to load configurations, fetch publications, and generate PRISMA outputs.

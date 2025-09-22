@@ -1,5 +1,5 @@
 # Copyright (c) 2024 Shanaka Abeysiriwardhana
-# This file is part of research_search_shanaka and is licensed under the GNU GPL v3.
+# This file is part of literature_review_shanaka and is licensed under the GNU GPL v3.
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
 
@@ -10,7 +10,7 @@ Command-line interface for PRISMA Literature Review Tool.
 import argparse
 import sys
 import os
-from collections import Counter
+from collections import Counter, defaultdict
 from .config_loader import load_config
 from .keywords import get_keywords
 from .api_clients import (
@@ -59,6 +59,30 @@ def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed',
     else:
         print(f'No database {db_name} Found')
         return []
+
+
+def remove_duplicates(publications):
+    """Remove duplicate publications based on title and authors.
+    
+    Args:
+        publications: List of publication dictionaries.
+        
+    Returns:
+        Tuple of (unique_publications, total_duplicates).
+    """
+    seen = set()
+    unique_publications = []
+    total_duplicates = 0
+
+    for pub in publications:
+        identifier = (pub['Title'].lower(), tuple(pub['Authors']))
+        if identifier not in seen:
+            seen.add(identifier)
+            unique_publications.append(pub)
+        else:
+            total_duplicates += 1
+
+    return unique_publications, total_duplicates
 
 
 def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, output_dir='output'):
@@ -115,6 +139,11 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
             start_year=start_year,
             end_year=end_year
         )
+    
+    # Remove duplicates
+    publications, total_duplicates = remove_duplicates(publications)
+    print(f"Total duplicates removed: {total_duplicates}")
+    
     for pub in publications:
         included = False
         reasons = []
@@ -149,7 +178,13 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
                 criteria_counts['by_criteria'][r] += 1
     total_records = len(publications)
     output_prisma_results(results, criteria_counts, total_records, output_dir=output_dir)
-    create_prisma_drawio_diagram(criteria_counts, total_records, output_dir=output_dir)
+    create_prisma_drawio_diagram(
+        criteria_counts, 
+        total_records, 
+        total_duplicates, 
+        output_dir=output_dir, 
+        keywords=', '.join(keyword_list)
+    )
 
 
 def main():

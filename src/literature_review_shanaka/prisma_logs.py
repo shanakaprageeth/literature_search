@@ -1,13 +1,15 @@
 # Copyright (c) 2024 Shanaka Abeysiriwardhana
-# This file is part of research_search_shanaka and is licensed under the GNU GPL v3.
+# This file is part of literature_review_shanaka and is licensed under the GNU GPL v3.
 # Please carry the copyright notice in derived works.
 # See LICENSE file for details.
 import os
 import csv
 import json
+import sys
 from collections import Counter
 from typing import List, Dict, Any
 import drawpyo
+import pkgutil  # Add this import for handling frozen packages
 
 def output_prisma_results(results: List[Dict[str, Any]], criteria_counts: Dict[str, Any], total_records: int, output_dir: str = 'output') -> None:
     """Write PRISMA results to CSV, JSON, and print summary/flowcharts."""
@@ -88,27 +90,50 @@ def output_prisma_results(results: List[Dict[str, Any]], criteria_counts: Dict[s
         print('\nMethodology for Literature Review Section:\n')
         print(method_text)
 
-def create_prisma_drawio_diagram(criteria_counts: Dict[str, Any], total_records: int, output_dir: str = 'output') -> None:
-    """Create and save PRISMA flow diagram as a draw.io file."""
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    draw_io_file = drawpyo.File(file_name="prisma_flow_diagram.drawio", file_path=output_dir)
-    page = drawpyo.Page(file=draw_io_file)
-    # Main boxes
-    box_identified = drawpyo.diagram.Object(page=page, x=400, y=80, width=200, height=60, text=f"Records identified:\n{total_records}")
-    box_screened = drawpyo.diagram.Object(page=page, x=400, y=200, width=200, height=60, text=f"Records screened:\n{total_records}")
-    box_excluded = drawpyo.diagram.Object(page=page, x=120, y=320, width=200, height=60, text=f"Records excluded:\n{criteria_counts['exclusion']}")
-    box_included = drawpyo.diagram.Object(page=page, x=400, y=440, width=200, height=60, text=f"Records included:\n{criteria_counts['inclusion']}")
-    # Arrows between main boxes
-    drawpyo.diagram.Object(page=page, source=box_identified, target=box_screened)
-    drawpyo.diagram.Object(page=page, source=box_screened, target=box_excluded)
-    drawpyo.diagram.Object(page=page, source=box_screened, target=box_included)
-    # Exclusion criteria boxes on right
-    y_start = 320
-    for i, (crit, count) in enumerate(criteria_counts['by_criteria'].items()):
-        y = y_start + i*80
-        excl_box = drawpyo.diagram.Object(page=page, x=700, y=y, width=260, height=50, text=f"{crit}: {count}")
-        drawpyo.diagram.Object(page=page, source=box_excluded, target=excl_box)
-    # Save as draw.io file
-    draw_io_file.write()
-    print(f"\nPRISMA flow diagram saved as '{os.path.join(output_dir, 'prisma_flow_diagram.drawio')}' (draw.io compatible).")
+def create_prisma_drawio_diagram(criteria_counts: Dict[str, Any], total_records: int, total_duplicates: int, output_dir: str = 'output', keywords: str = '') -> None:
+    """Fill data into the provided PRISMA flow diagram template or use the default template."""
+    user_template_path = os.path.join(output_dir, 'prisma_flow_diagram.drawio')
+    default_template_path = os.path.join(os.path.dirname(__file__), 'prisma_flow_diagram.drawio')
+
+    # Determine the template to use
+    if os.path.exists(user_template_path):
+        template_path = user_template_path
+    else:
+        # Handle frozen package scenario
+        try:
+            default_template_content = pkgutil.get_data(__package__, 'prisma_flow_diagram.drawio')
+            if default_template_content is not None:
+                default_template_content = default_template_content.decode('utf-8')
+        except Exception:
+            default_template_content = None
+
+        if default_template_content:
+            template_path = None  # Use in-memory content
+        elif os.path.exists(default_template_path):
+            template_path = default_template_path
+        else:
+            print(f"ERROR: Template file not found in '{user_template_path}' or '{default_template_path}'.", file=sys.stderr)
+            return
+
+    filled_diagram_path = os.path.join(output_dir, 'prisma_flow_diagram_filled.drawio')
+
+    # Read template content
+    if template_path:
+        with open(template_path, 'r') as template_file:
+            diagram_content = template_file.read()
+    else:
+        diagram_content = default_template_content
+
+    # Replace placeholders with actual values
+    diagram_content = diagram_content.replace("{ADD_KEYWORDS}", keywords)
+    diagram_content = diagram_content.replace("{TOTAL_RECORDS_WITH_DUPLICATES}", str(total_records + total_duplicates))
+    diagram_content = diagram_content.replace("{TOTAL_DUPLICATES}", str(total_duplicates))
+    diagram_content = diagram_content.replace("{TOTAL_RECORDS}", str(total_records))
+    diagram_content = diagram_content.replace("{AFTER_INCLUSION_EXCLUSION}", str(criteria_counts['inclusion']))
+    diagram_content = diagram_content.replace("{EXCLUSION_COUNTS}", json.dumps(criteria_counts['by_criteria'], indent=2))
+
+    # Write the filled diagram
+    with open(filled_diagram_path, 'w') as filled_file:
+        filled_file.write(diagram_content)
+
+    print(f"PRISMA flow diagram filled and saved as '{filled_diagram_path}'.")

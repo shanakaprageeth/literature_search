@@ -1,8 +1,9 @@
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
 [project]
-name = "research_search_shanaka"
+name = "literature_review_shanaka"
 version = "0.0.1"
 authors = [
   { name="Shanaka Prageeth", email="wasp.bites.jp@gmail.com" },
@@ -27,4 +28,7 @@ Homepage = "https://github.com/shanakaprageeth/prisma_search"
 Issues = "https://github.com/shanakaprageeth/prisma_search/issues"
 
 [project.scripts]
-prisma-search = "research_search_shanaka.cli:main"
+prisma-search = "literature_review_shanaka.cli:main"
+
+[tool.setuptools.package-data]
+"literature_review_shanaka" = ["prisma_flow_diagram.drawio"]

@@ -1,5 +1,5 @@
 # tests/test_prisma_logs.py
-from research_search_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
+from literature_review_shanaka.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 import os
 from collections import Counter
 
@@ -28,11 +28,42 @@ def test_output_prisma_results(tmp_path):
         assert "Paper 2" not in content  # excluded paper
 
 def test_create_prisma_drawio_diagram(tmp_path):
-    criteria_counts = {"inclusion": 1, "exclusion": 1, "by_criteria": {"reason 1": 1}}
-    total_records = 2
+    """Test the create_prisma_drawio_diagram function."""
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
+    os.makedirs(output_dir, exist_ok=True)
 
-    create_prisma_drawio_diagram(criteria_counts, total_records, output_dir=str(output_dir))
+    criteria_counts = {
+        "inclusion": 50,
+        "exclusion": 30,
+        "by_criteria": {"criterion_1": 20, "criterion_2": 10}
+    }
+    total_records = 100
+    total_duplicates = 20
 
-    assert (output_dir / "prisma_flow_diagram.drawio").exists()
+    # Create a valid template with placeholders
+    template_path = os.path.join(output_dir, "prisma_flow_diagram.drawio")
+    with open(template_path, "w") as f:
+        f.write(
+            "<mxfile>"
+            "{ADD_KEYWORDS}"
+            "{TOTAL_RECORDS_WITH_DUPLICATES}"
+            "{TOTAL_DUPLICATES}"
+            "{TOTAL_RECORDS}"
+            "{AFTER_INCLUSION_EXCLUSION}"
+            "</mxfile>"
+        )
+
+    # Call the function
+    create_prisma_drawio_diagram(criteria_counts, total_records, total_duplicates, output_dir=str(output_dir))
+
+    # Verify the filled diagram file is created
+    filled_diagram_path = os.path.join(output_dir, "prisma_flow_diagram_filled.drawio")
+    assert os.path.exists(filled_diagram_path), "Filled diagram file was not created."
+
+    # Verify the content of the filled diagram
+    with open(filled_diagram_path, "r") as f:
+        content = f.read()
+        assert str(total_records + total_duplicates) in content
+        assert str(total_duplicates) in content
+        assert str(total_records) in content
+        assert str(criteria_counts["inclusion"]) in content
