@@ -24,8 +24,8 @@ classifiers = [
 license = {text = "GPL-3.0-only"}
 
 [project.urls]
-Homepage = "https://github.com/shanakaprageeth/prisma_search"
-Issues = "https://github.com/shanakaprageeth/prisma_search/issues"
+Homepage = "https://github.com/shanakaprageeth/literature_search"
+Issues = "https://github.com/shanakaprageeth/literature_search/issues"
 
 [project.scripts]
 literature-search = "literature_search_shanaka.cli:main"
