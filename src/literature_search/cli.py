@@ -22,6 +22,7 @@ from .api_clients import (
 )
 from .prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 from .utils import robust_get
+from .criteria_mapper import check_criteria_match, get_criteria_mismatch_reasons, get_mapped_field_for_criteria, get_database_name_from_source
 
 
 def parse_date_range(date_range):
@@ -148,20 +149,37 @@ def search_prisma(config_file='sample_input.json', logic='OR', page_size=100, ou
         included = False
         reasons = []
         in_date_range = pub['Year'] and (start_year <= pub['Year'] <= end_year)
-        has_inclusion = any(inc in pub['Type'].lower() for inc in inclusion_criteria)
+        
+        # Use the new criteria mapping system
+        has_inclusion = check_criteria_match(pub, inclusion_criteria)
         if in_date_range and has_inclusion:
             included = True
-        for exc in exclusion_criteria:
-            if exc in pub['Type'].lower():
-                included = False
-                reasons.append(f"Has exclusion: {exc}")
+        
+        # Check exclusion criteria
+        if check_criteria_match(pub, exclusion_criteria):
+            included = False
+            # For exclusion, we want to say what matched (caused exclusion)
+            for criteria in exclusion_criteria:
+                if ':' in criteria:
+                    field, value = criteria.split(':', 1)
+                    field_name = get_mapped_field_for_criteria(get_database_name_from_source(pub.get('Source', '')), field.strip().lower())
+                    pub_value = str(pub.get(field_name, '')).lower()
+                    if value.strip().lower() in pub_value:
+                        if field.strip().lower() == 'type':
+                            reasons.append(f"Has exclusion type: {value.strip().lower()}")
+                        else:
+                            reasons.append(f"Has exclusion {field.strip().lower()}: {value.strip().lower()}")
+                else:
+                    # Default to type field for backward compatibility
+                    if criteria.lower() in pub['Type'].lower():
+                        reasons.append(f"Has exclusion: {criteria.lower()}")
+        
         if not included:
             if not in_date_range:
                 reasons.append(f'Published outside {date_range}')
             if not has_inclusion:
-                for inc in inclusion_criteria:
-                    if inc not in pub['Type'].lower():
-                        reasons.append(f"Missing inclusion: {inc}")
+                inclusion_reasons = get_criteria_mismatch_reasons(pub, inclusion_criteria, 'inclusion')
+                reasons.extend(inclusion_reasons)
         results.append({
             'Title': pub['Title'],
             'Authors': pub['Authors'],

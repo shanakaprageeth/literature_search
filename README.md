@@ -13,6 +13,7 @@ Automate and document literature reviews using the PRISMA methodology. Input a r
 - Smart keyword handling: derives keywords from research topic if not provided
 - Enhanced output: multiple CSVs for all and selected publications
 - Collects PRISMA-related values (inclusion/exclusion criteria, databases, date ranges)
+- **NEW**: Database-specific field mapping for inclusion/exclusion criteria (e.g., `type:journal`, `language:english`)
 - Outputs:
   - PRISMA method data for literature review
   - CSVs: `all_publications_found.csv`, `selected_publications.csv`, `output_results.csv`
@@ -62,6 +63,47 @@ If missing, keywords are generated from `research_topic` with a warning.
   }
 }
 ```
+
+### Field-Specific Criteria (NEW)
+
+You can now specify database-specific fields in inclusion and exclusion criteria using the format `field:value`:
+
+```json
+{
+  "research_topic": "machine learning",
+  "initial_prisma_values": {
+    "inclusion_criteria": [
+      "type:journal-article",
+      "language:english",
+      "journal:nature"
+    ],
+    "exclusion_criteria": [
+      "type:conference-paper",
+      "source:arxiv",
+      "language:non-english"
+    ],
+    "databases": ["PubMed", "CrossRef", "arXiv"],
+    "date_range": "2020-2025"
+  }
+}
+```
+
+**Supported fields:**
+- `type` / `publication_type` / `pubtype` → Publication type (journal, conference, etc.)
+- `language` → Publication language  
+- `source` → Database source
+- `journal` / `venue` → Journal or venue name
+- `authors` → Author names
+- `document_type` → Document type (CORE database)
+
+**Database-specific mappings:**
+- **PubMed/Europe PMC**: Maps to publication metadata from medical literature
+- **CrossRef**: Maps to scholarly publication metadata
+- **arXiv**: Maps to preprint metadata
+- **CORE**: Maps `document_type` to `Type` field
+- **SemanticScholar**: Maps `venue` to `Journal` field
+
+**Backward compatibility**: Criteria without field specifications (e.g., `"journal"`) default to the `type` field.
 
 ## Installation
 
