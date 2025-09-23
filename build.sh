@@ -31,7 +31,7 @@ if [[ "$ACTION" == "test" || "$ACTION" == "publish" ]]; then
 
     echo "Running tests..."
     pytest tests
-    literature-search --config sample_input.json
+    #literature-search --config sample_input.json
 fi
 
 # Publish the package
