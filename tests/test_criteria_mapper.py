@@ -19,6 +19,10 @@ def test_get_database_name_from_source():
     assert get_database_name_from_source('arXiv') == 'arXiv'
     assert get_database_name_from_source('CORE') == 'CORE'
     assert get_database_name_from_source('SemanticScholar') == 'SemanticScholar'
+    assert get_database_name_from_source('IEEE') == 'IEEE'
+    assert get_database_name_from_source('Springer') == 'Springer'
+    assert get_database_name_from_source('DBLP') == 'DBLP'
+    assert get_database_name_from_source('Scopus') == 'Scopus'
     assert get_database_name_from_source('unknown') == 'PubMed'  # Default
 
 

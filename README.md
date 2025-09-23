@@ -19,7 +19,7 @@ Automate and document literature reviews using the PRISMA methodology. Input a r
   - CSVs: `all_publications_found.csv`, `selected_publications.csv`, `output_results.csv`
   - JSON file with results
   - PRISMA flow diagram in draw.io format (default or user template)
-- Supports multiple databases: PubMed, CrossRef, arXiv, CORE, SemanticScholar
+- Supports multiple databases: PubMed, CrossRef, arXiv, CORE, SemanticScholar, IEEE Xplore, Springer, DBLP, Scopus
 - Validates configuration files
 - Retries API requests with exponential backoff
 - Modular, extensible design
@@ -58,11 +58,28 @@ If missing, keywords are generated from `research_topic` with a warning.
   "initial_prisma_values": {
     "inclusion_criteria": ["review", "thesis", "journal", "book"],
     "exclusion_criteria": ["non-english", "conference"],
-    "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar"],
+    "databases": ["PubMed", "CrossRef", "arXiv", "CORE", "SemanticScholar", "IEEE", "Springer", "DBLP", "Scopus"],
     "date_range": "2015-2025"
+  },
+  "api_keys": {
+    "CORE": "your_core_api_key_here",
+    "IEEE": "your_ieee_api_key_here", 
+    "Springer": "your_springer_api_key_here",
+    "Scopus": "your_scopus_api_key_here"
   }
 }
 ```
+
+### API Keys Configuration
+
+Some databases require API keys for access:
+
+- **CORE**: Free API key available at [CORE API](https://core.ac.uk/services/api)
+- **IEEE Xplore**: API key required from [IEEE Developer](https://developer.ieee.org/docs)  
+- **Springer**: API key required from [Springer Nature API](https://dev.springernature.com/)
+- **Scopus**: API key required from [Elsevier Developer Portal](https://dev.elsevier.com/)
+
+Add your API keys to the configuration file under the `api_keys` section. If no API key is provided for a database that requires one, that database will be skipped with a warning message.
 
 ### Field-Specific Criteria (NEW)
 
@@ -139,7 +156,11 @@ from literature_search.api_clients import (
     get_publications_crossref,
     get_publications_arxiv,
     get_publications_core,
-    get_publications_semanticscholar
+    get_publications_semanticscholar,
+    get_publications_ieee,
+    get_publications_springer,
+    get_publications_dblp,
+    get_publications_scopus
 )
 from literature_search.prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 
