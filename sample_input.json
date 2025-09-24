@@ -8,9 +8,5 @@
     "date_range": "2015-2025"
   },
   "api_keys": {
-    "CORE": "your_core_api_key_here",
-    "IEEE": "your_ieee_api_key_here",
-    "Springer": "your_springer_api_key_here",
-    "Scopus": "your_scopus_api_key_here"
   }
 }
