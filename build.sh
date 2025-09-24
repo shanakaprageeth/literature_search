@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
-
+DEBIAN_FRONTEND=noninteractive
+PROGRAM_NAME="$(basename $0)"
+BASEDIR=$(dirname $(realpath "$0"))
 usage() {
     echo "Usage: $0 [build|test|publish]"
     echo "  build   : Build the package (default)"
@@ -14,7 +16,9 @@ ACTION=${1:-build}
 
 # Uninstall old version if exists
 echo "Uninstalling old literature_search if present..."
-pip3 uninstall -y literature_search || true
+pip3 uninstall -y literature-search || true
+rm -rf $BASEDIR/build $BASEDIR/dist
+
 
 # Build the package
 if [[ "$ACTION" == "build" || "$ACTION" == "test" || "$ACTION" == "publish" ]]; then

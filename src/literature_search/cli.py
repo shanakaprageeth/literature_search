@@ -18,7 +18,11 @@ from .api_clients import (
     get_publications_crossref,
     get_publications_arxiv,
     get_publications_core,
-    get_publications_semanticscholar
+    get_publications_semanticscholar,
+    get_publications_ieee,
+    get_publications_springer,
+    get_publications_dblp,
+    get_publications_scopus
 )
 from .prisma_logs import output_prisma_results, create_prisma_drawio_diagram
 from .utils import robust_get
@@ -57,6 +61,14 @@ def search_database(keyword_list, api_key=None, page_size=100, db_name='PubMed',
         return get_publications_core(keyword_list, api_key, page_size, logic, start_year, end_year)
     elif db_name == 'SemanticScholar':
         return get_publications_semanticscholar(keyword_list, page_size, logic, start_year, end_year, open_access, fields_of_study, extra_fields)
+    elif db_name == 'IEEE':
+        return get_publications_ieee(keyword_list, api_key, page_size, logic, start_year, end_year)
+    elif db_name == 'Springer':
+        return get_publications_springer(keyword_list, api_key, page_size, logic, start_year, end_year)
+    elif db_name == 'DBLP':
+        return get_publications_dblp(keyword_list, page_size, logic)
+    elif db_name == 'Scopus':
+        return get_publications_scopus(keyword_list, api_key, page_size, logic, start_year, end_year)
     else:
         print(f'No database {db_name} Found')
         return []

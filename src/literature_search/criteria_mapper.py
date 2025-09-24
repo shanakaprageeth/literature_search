@@ -51,6 +51,45 @@ DATABASE_FIELD_MAPPINGS = {
         'journal': 'Journal',
         'venue': 'Journal',
         'authors': 'Authors'
+    },
+    'IEEE': {
+        'type': 'Type',
+        'publication_type': 'Type',
+        'content_type': 'Type',
+        'language': 'Language',
+        'source': 'Source',
+        'journal': 'Journal',
+        'publication_title': 'Journal',
+        'authors': 'Authors'
+    },
+    'Springer': {
+        'type': 'Type',
+        'publication_type': 'Type',
+        'content_type': 'Type',
+        'language': 'Language',
+        'source': 'Source',
+        'journal': 'Journal',
+        'publication_name': 'Journal',
+        'authors': 'Authors'
+    },
+    'DBLP': {
+        'type': 'Type',
+        'publication_type': 'Type',
+        'language': 'Language',
+        'source': 'Source',
+        'journal': 'Journal',
+        'venue': 'Journal',
+        'authors': 'Authors'
+    },
+    'Scopus': {
+        'type': 'Type',
+        'publication_type': 'Type',
+        'aggregation_type': 'Type',
+        'language': 'Language',
+        'source': 'Source',
+        'journal': 'Journal',
+        'publication_name': 'Journal',
+        'authors': 'Authors'
     }
 }
 
@@ -78,6 +117,14 @@ def get_database_name_from_source(source: str) -> str:
         return 'CORE'
     elif source_lower == 'semanticscholar':
         return 'SemanticScholar'
+    elif source_lower == 'ieee':
+        return 'IEEE'
+    elif source_lower == 'springer':
+        return 'Springer'
+    elif source_lower == 'dblp':
+        return 'DBLP'
+    elif source_lower == 'scopus':
+        return 'Scopus'
     else:
         # Default to PubMed for backward compatibility
         return 'PubMed'

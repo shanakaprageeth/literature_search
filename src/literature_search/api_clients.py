@@ -160,3 +160,331 @@ def get_publications_semanticscholar(keyword_list: List[str], page_size: int = 1
             'Abstract': item.get('abstract', '')
         })
     return results
+
+
+def get_publications_ieee(keyword_list: List[str], api_key: str, page_size: int = 100, logic: str = 'OR', start_year: int = None, end_year: int = None) -> List[Dict[str, Any]]:
+    """Get publications from IEEE Xplore API.
+    
+    Args:
+        keyword_list: List of keywords to search for
+        api_key: IEEE API key
+        page_size: Maximum number of results to return
+        logic: Search logic ('AND' or 'OR')
+        start_year: Start year for date filtering
+        end_year: End year for date filtering
+        
+    Returns:
+        List of publication dictionaries
+    """
+    if logic == 'AND':
+        query = ' AND '.join([f'"{k}"' for k in keyword_list])
+    else:
+        query = ' OR '.join([f'"{k}"' for k in keyword_list])
+    
+    url = 'https://ieeexploreapi.ieee.org/api/v1/search/articles'
+    params = {
+        'querytext': query,
+        'max_records': min(page_size, 200),  # IEEE API has max 200 per request
+        'start_record': 1,
+        'sort_field': 'article_number',
+        'sort_order': 'asc'
+    }
+    
+    if start_year and end_year:
+        params['start_year'] = start_year
+        params['end_year'] = end_year
+    
+    if not api_key:
+        print("Warning: IEEE API key not provided. Access may be limited.")
+        return []
+    
+    headers = {'Accept': 'application/json'}
+    params['apikey'] = api_key
+    
+    response = robust_get(url, params=params, headers=headers)
+    if not response:
+        print("IEEE API error: failed after retries.")
+        return []
+    
+    data = response.json()
+    results = []
+    
+    for item in data.get('articles', []):
+        # Extract authors
+        authors = ''
+        if 'authors' in item and 'authors' in item['authors']:
+            authors = ', '.join([
+                author.get('full_name', '') 
+                for author in item['authors']['authors'] 
+                if author.get('full_name')
+            ])
+        
+        # Extract year from publication_date
+        year = ''
+        if 'publication_date' in item:
+            try:
+                year = int(item['publication_date'][:4])
+            except (ValueError, TypeError):
+                pass
+        
+        results.append({
+            'Title': item.get('title', ''),
+            'Source': 'IEEE',
+            'Authors': authors,
+            'Year': year,
+            'Journal': item.get('publication_title', ''),
+            'Language': 'English',
+            'Type': item.get('content_type', 'article'),
+            'Focus': query,
+            'DOI': item.get('doi', ''),
+            'Abstract': item.get('abstract', ''),
+            'URL': item.get('html_url', '')
+        })
+    
+    return results
+
+
+def get_publications_springer(keyword_list: List[str], api_key: str, page_size: int = 100, logic: str = 'OR', start_year: int = None, end_year: int = None) -> List[Dict[str, Any]]:
+    """Get publications from Springer API.
+    
+    Args:
+        keyword_list: List of keywords to search for
+        api_key: Springer API key
+        page_size: Maximum number of results to return
+        logic: Search logic ('AND' or 'OR')
+        start_year: Start year for date filtering
+        end_year: End year for date filtering
+        
+    Returns:
+        List of publication dictionaries
+    """
+    if logic == 'AND':
+        query = ' AND '.join([f'"{k}"' for k in keyword_list])
+    else:
+        query = ' OR '.join([f'"{k}"' for k in keyword_list])
+    
+    url = 'http://api.springernature.com/meta/v2/json'
+    params = {
+        'q': query,
+        's': min(page_size, 100),  # Springer API has max 100 per request
+        'p': 1
+    }
+    
+    if start_year and end_year:
+        params['q'] += f' year:{start_year}-{end_year}'
+    
+    if not api_key:
+        print("Warning: Springer API key not provided. Access may be limited.")
+        return []
+    
+    headers = {'Accept': 'application/json'}
+    params['api_key'] = api_key
+    
+    response = robust_get(url, params=params, headers=headers)
+    if not response:
+        print("Springer API error: failed after retries.")
+        return []
+    
+    data = response.json()
+    results = []
+    
+    for item in data.get('records', []):
+        # Extract authors
+        authors = ''
+        if 'creators' in item:
+            authors = ', '.join([
+                creator.get('creator', '') 
+                for creator in item['creators'] 
+                if creator.get('creator')
+            ])
+        
+        # Extract year from publication date
+        year = ''
+        if 'publicationDate' in item:
+            try:
+                year = int(item['publicationDate'][:4])
+            except (ValueError, TypeError):
+                pass
+        
+        results.append({
+            'Title': item.get('title', ''),
+            'Source': 'Springer',
+            'Authors': authors,
+            'Year': year,
+            'Journal': item.get('publicationName', ''),
+            'Language': item.get('language', 'English'),
+            'Type': item.get('contentType', 'article'),
+            'Focus': query,
+            'DOI': item.get('doi', ''),
+            'Abstract': item.get('abstract', ''),
+            'URL': item.get('url', [{}])[0].get('value', '') if item.get('url') else ''
+        })
+    
+    return results
+
+
+def get_publications_dblp(keyword_list: List[str], page_size: int = 100, logic: str = 'OR') -> List[Dict[str, Any]]:
+    """Get publications from DBLP API.
+    
+    Args:
+        keyword_list: List of keywords to search for  
+        page_size: Maximum number of results to return
+        logic: Search logic ('AND' or 'OR') 
+        
+    Returns:
+        List of publication dictionaries
+    """
+    if logic == 'AND':
+        query = ' '.join(keyword_list)  # DBLP treats space as AND by default
+    else:
+        query = ' | '.join(keyword_list)  # Use | for OR in DBLP
+    
+    url = 'https://dblp.org/search/publ/api'
+    params = {
+        'q': query,
+        'h': min(page_size, 1000),  # DBLP allows up to 1000 results
+        'format': 'json'
+    }
+    
+    response = robust_get(url, params=params)
+    if not response:
+        print("DBLP API error: failed after retries.")
+        return []
+    
+    data = response.json()
+    results = []
+    
+    hits = data.get('result', {}).get('hits', {})
+    if not hits:
+        return results
+    
+    for item in hits.get('hit', []):
+        info = item.get('info', {})
+        
+        # Extract authors
+        authors = ''
+        if 'authors' in info and 'author' in info['authors']:
+            author_list = info['authors']['author']
+            if isinstance(author_list, list):
+                authors = ', '.join([
+                    author.get('text', '') if isinstance(author, dict) else str(author)
+                    for author in author_list
+                ])
+            else:
+                authors = author_list.get('text', '') if isinstance(author_list, dict) else str(author_list)
+        
+        # Extract year
+        year = ''
+        if 'year' in info:
+            try:
+                year = int(info['year'])
+            except (ValueError, TypeError):
+                pass
+        
+        # Extract venue/journal
+        venue = ''
+        if 'venue' in info:
+            venue = info['venue']
+        
+        results.append({
+            'Title': info.get('title', ''),
+            'Source': 'DBLP',
+            'Authors': authors,
+            'Year': year,
+            'Journal': venue,
+            'Language': 'English',
+            'Type': info.get('type', 'article'),
+            'Focus': query,
+            'DOI': info.get('doi', ''),
+            'URL': info.get('url', '')
+        })
+    
+    return results
+
+
+def get_publications_scopus(keyword_list: List[str], api_key: str, page_size: int = 100, logic: str = 'OR', start_year: int = None, end_year: int = None) -> List[Dict[str, Any]]:
+    """Get publications from Scopus API.
+    
+    Args:
+        keyword_list: List of keywords to search for
+        api_key: Scopus API key (Elsevier API key)
+        page_size: Maximum number of results to return
+        logic: Search logic ('AND' or 'OR')
+        start_year: Start year for date filtering
+        end_year: End year for date filtering
+        
+    Returns:
+        List of publication dictionaries
+    """
+    if logic == 'AND':
+        query = ' AND '.join([f'TITLE-ABS-KEY("{k}")' for k in keyword_list])
+    else:
+        query = ' OR '.join([f'TITLE-ABS-KEY("{k}")' for k in keyword_list])
+    
+    if start_year and end_year:
+        query += f' AND PUBYEAR > {start_year-1} AND PUBYEAR < {end_year+1}'
+    
+    url = 'https://api.elsevier.com/content/search/scopus'
+    params = {
+        'query': query,
+        'count': min(page_size, 200),  # Scopus API has max 200 per request
+        'start': 0,
+        'sort': 'pubyear'
+    }
+    
+    if not api_key:
+        print("Warning: Scopus API key not provided. Access may be limited.")
+        return []
+    
+    headers = {
+        'Accept': 'application/json',
+        'X-ELS-APIKey': api_key
+    }
+    
+    response = robust_get(url, params=params, headers=headers)
+    if not response:
+        print("Scopus API error: failed after retries.")
+        return []
+    
+    data = response.json()
+    results = []
+    
+    search_results = data.get('search-results', {})
+    entries = search_results.get('entry', [])
+    
+    for item in entries:
+        # Extract authors
+        authors = ''
+        if 'author' in item:
+            author_list = item['author']
+            if isinstance(author_list, list):
+                authors = ', '.join([
+                    author.get('authname', '') for author in author_list
+                    if author.get('authname')
+                ])
+            else:
+                authors = author_list.get('authname', '') if isinstance(author_list, dict) else ''
+        
+        # Extract year from cover date
+        year = ''
+        if 'prism:coverDate' in item:
+            try:
+                year = int(item['prism:coverDate'][:4])
+            except (ValueError, TypeError):
+                pass
+        
+        results.append({
+            'Title': item.get('dc:title', ''),
+            'Source': 'Scopus',
+            'Authors': authors,
+            'Year': year,
+            'Journal': item.get('prism:publicationName', ''),
+            'Language': 'English',
+            'Type': item.get('prism:aggregationType', 'article'),
+            'Focus': query,
+            'DOI': item.get('prism:doi', ''),
+            'Abstract': '',  # Abstract not included in search results
+            'URL': item.get('link', [{}])[-1].get('@href', '') if item.get('link') else ''
+        })
+    
+    return results
