@@ -1,4 +1,4 @@
-# PRISMA Search Literature Review Tool
+# Literature Review Tool
 
 ## Overview
 Automate and document literature reviews using the PRISMA methodology. Input a research topic or keywords, manage PRISMA data, and output publication lists and methodology text for research papers.
@@ -208,6 +208,4 @@ The publication uses PyPI OIDC (OpenID Connect) for secure authentication withou
 ## License
 GPL-3
 
-## Future Work
-- Add more database APIs
-- AI-based abstract inclusion/exclusion
+<meta name="google-site-verification" content="ju3QxjZnaeFfYAtYOAFCwZaT_fi5-16KdkM7aOizR7Y" />
