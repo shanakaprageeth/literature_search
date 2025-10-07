@@ -1,0 +1,72 @@
+title: Literature Review Tool
+description: Automate and document literature reviews using the PRISMA methodology
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# GitHub repository
+repository: shanakaprageeth/literature_search
+
+# Navigation menu
+navigation:
+  - title: Home
+    url: /literature_search/
+  - title: Installation
+    url: /literature_search/installation
+  - title: Usage
+    url: /literature_search/usage
+  - title: Configuration
+    url: /literature_search/configuration
+  - title: Databases
+    url: /literature_search/databases
+  - title: Contributing
+    url: /literature_search/contributing
+  - title: FAQ
+    url: /literature_search/faq
+
+# GitHub Pages settings
+baseurl: /literature_search
+url: https://shanakaprageeth.github.io
+
+# Build settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .git
+  - .github
+  - build.sh
+  - prisma_review.py
+  - tests
+  - src
+  - dist
+  - build
+  - requirements.txt
+  - pyproject.toml
+  - sample_input.json
+  - sample_input_comma_separated.json
+
+# Include files
+include:
+  - _config.yml
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# SEO settings
+author: Shanaka Abeysiriwardhana
+twitter:
+  username: 
+  card: summary
+
+# Google Analytics (add your tracking ID if you have one)
+# google_analytics: UA-XXXXXXXXX-X
