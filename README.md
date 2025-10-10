@@ -1,5 +1,9 @@
 # Literature Review Tool
 
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://shanakaprageeth.github.io/literature_search/)
+[![PyPI version](https://img.shields.io/pypi/v/literature-search.svg)](https://pypi.org/project/literature-search/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 ## Overview
 Automate and document literature reviews using the PRISMA methodology. Input a research topic or keywords, manage PRISMA data, and output publication lists and methodology text for research papers.
 
@@ -7,6 +11,18 @@ Automate and document literature reviews using the PRISMA methodology. Input a r
 > Review and verify results before including them in research. Automated outputs assist, not replace, expert judgment.  
 > **API Usage Notice:**  
 > Use APIs responsibly to avoid rate limiting or loss of access.
+
+## 📚 Documentation
+
+**Full documentation is available at: [https://shanakaprageeth.github.io/literature_search/](https://shanakaprageeth.github.io/literature_search/)**
+
+Quick links:
+- [Installation Guide](https://shanakaprageeth.github.io/literature_search/installation)
+- [Usage Guide](https://shanakaprageeth.github.io/literature_search/usage)
+- [Configuration Guide](https://shanakaprageeth.github.io/literature_search/configuration)
+- [Supported Databases](https://shanakaprageeth.github.io/literature_search/databases)
+- [Contributing](https://shanakaprageeth.github.io/literature_search/contributing)
+- [FAQ](https://shanakaprageeth.github.io/literature_search/faq)
 
 ## Features
 - Flexible keyword input: list or comma-separated string
